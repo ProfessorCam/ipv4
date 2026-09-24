@@ -236,51 +236,13 @@ var LESSONS = [
     chip: 'cidr',
     title: 'The CIDR slider',
     subtitle: 'Move the line, watch the block halve and double',
-    facts: [
-      ['The rule', {
-        s: 'Each step to the right halves how many addresses you get. Each step to the left doubles it.',
-        m: 'Addresses in a block = 2<sup>(32 − prefix)</sup>. One more prefix bit halves the block; one fewer doubles it.',
-        e: 'Block size = 2<sup>32−p</sup>; usable = size − 2 for p ≤ 30, 2 for /31, 1 for /32. Block boundaries fall on multiples of the size.'
-      }],
-      ['Worth remembering', {
-        s: '<code>/24</code> is 256 addresses, the size of a home network. <code>/23</code> is twice that, 512. <code>/25</code> is half, 128.',
-        m: '<code>/24</code> = 256, <code>/23</code> = 512, <code>/22</code> = 1024, <code>/25</code> = 128, <code>/26</code> = 64, <code>/27</code> = 32, <code>/28</code> = 16, <code>/30</code> = 4.',
-        e: '/24 = 2<sup>8</sup>; each step left doubles: /23 = 512, /22 = 1024, /21 = 2048, /20 = 4096, /16 = 65 536. Each step right halves: /25 = 128 … /30 = 4.'
-      }]
-    ],
-    oneLiner: {
-      s: 'The number after the slash says how many switches belong to the network. The rest belong to hosts, and every extra host switch doubles the number of addresses.',
-      m: 'The prefix length sets how many of the 32 bits are network bits. The remaining host bits decide the size of the block: 2 to the power of the host bits.',
-      e: 'Prefix length p fixes the top p bits; the low 32 − p bits enumerate 2<sup>32−p</sup> addresses from the network address to the directed broadcast.'
-    },
+    oneLiner: '',
     sections: [
-      { h: 'Drag it', p: {
-        s: [
-          'Drag the slider, or use the arrow keys once it has focus. The number of addresses doubles or halves with every step. Watch the coloured row of switches underneath: blue is network, pink is host.'
-        ],
-        m: [
-          'Drag the slider from <code>/16</code> to <code>/32</code> (arrow keys work too). Six things update at once: the size of the block, the usable hosts, the dotted mask, the network and broadcast addresses, and the number of host bits. The 32-bit strip underneath shows the line moving through the address.'
-        ],
-        e: [
-          'Sweep p from 16 to 32 on <code>192.168.0.0</code>. Size, usable count, mask, network, directed broadcast and host-bit count update live from <code>subnet.js</code>. Note the /31 and /32 special cases at the far right.'
-        ]
-      }, cidr: { ip: '192.168.0.0', min: 16, max: 32, start: 24, caption: {
+      { cidr: { ip: '192.168.0.0', min: 16, max: 32, start: 24, caption: {
         s: 'With <b>/{p}</b> the network keeps {p} switches and leaves <b>{hb}</b> for hosts. {hb} switches can be set 2<sup>{hb}</sup> = <b>{size}</b> ways, so the block has {size} addresses. Take away the first and last and <b>{usable}</b> machines can use it.',
         m: '<b>/{p}</b> leaves <b>{hb} host bits</b>, so the block holds 2<sup>{hb}</sup> = <b>{size}</b> addresses, from <code>{net}</code> (the network address) to <code>{bc}</code> (broadcast). That leaves <b>{usable}</b> usable host addresses. The mask is <code>{mask}</code>.',
         e: '<b>/{p}</b>: mask <code>{mask}</code>, wildcard <code>{wild}</code>. 2<sup>{hb}</sup> = <b>{size}</b> addresses, <code>{net}</code> to <code>{bc}</code>; <b>{usable}</b> assignable. Next block starts at <code>{next}</code>.'
-      } }, after: {
-        s: [
-          'Try stopping at <code>/23</code> and <code>/24</code>. At <code>/24</code> there are 256 addresses, which is what most home routers hand out. At <code>/23</code> the last two numbers are both host, so there are 512.'
-        ],
-        m: [
-          'Stop at <code>/24</code> and <code>/23</code> to see the example everyone learns first: <code>/24</code> has 8 host bits, 2<sup>8</sup> = 256 addresses; <code>/23</code> borrows one bit from the third octet, 9 host bits, 2<sup>9</sup> = 512. Notice that the mask for <code>/23</code> is <code>255.255.254.0</code>, and the broadcast address moved from <code>192.168.0.255</code> to <code>192.168.1.255</code>: the block now spans two of what used to be separate /24s.',
-          'Blocks always start on a multiple of their own size. A <code>/26</code> (64 addresses) can start at .0, .64, .128 or .192, never at .100. This is why the network address is found by zeroing the host bits rather than by rounding.'
-        ],
-        e: [
-          '/23 vs /24 is the canonical example: one bit borrowed from the third octet doubles the block and spans two classful /24s (mask 255.255.254.0, broadcast 192.168.1.255). Supernetting in one direction, subnetting in the other, same arithmetic.',
-          'Alignment: a /p block starts at an address whose low 32 − p bits are zero, so networks are found by masking, not rounding. Misaligned "networks" such as 192.168.1.100/26 are configuration errors that most stacks silently correct to .64.'
-        ]
-      }},
+      } } },
       { h: 'The two odd ones: /31 and /32', p: {
         s: [
           'At the far right of the slider the usual "take away two" rule stops. <code>/31</code> has just two addresses and both are used, on a wire that joins exactly two routers. <code>/32</code> is one single machine.'

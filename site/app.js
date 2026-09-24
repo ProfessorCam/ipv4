@@ -559,7 +559,7 @@
   }
 
   function sectionHtml(s) {
-    var h = ['<section><h2>' + esc(s.h) + '</h2>'];
+    var h = ['<section>' + (s.h ? '<h2>' + esc(s.h) + '</h2>' : '')];
     paras(s.p).forEach(function (p) { h.push('<p>' + p + '</p>'); });
     if (s.binary) h.push(binaryHtml(s.binary));
     if (s.anatomy) h.push(anatomyHtml(s.anatomy));
@@ -755,8 +755,9 @@
     var h = [];
     h.push('<article class="lesson" id="lesson-' + lesson.id + '">');
     h.push('<p class="crumb">' + esc(STACK_GROUPS[lesson.stack] || 'Lesson') + '</p>');
-    h.push('<h1>' + esc(lesson.title) + ' <small>' + esc(lesson.subtitle) + '</small></h1>');
-    h.push('<p class="lead">' + lv(lesson.oneLiner) + '</p>');
+    h.push('<h1>' + esc(lesson.title) + '</h1>');
+    var lead = lv(lesson.oneLiner);
+    if (lead) h.push('<p class="lead">' + lead + '</p>');
     if (lesson.facts) h.push('<div class="facts">' + lesson.facts.map(function (f) { return '<div><span class="k">' + esc(f[0]) + '</span><span class="v">' + lv(f[1]) + '</span></div>'; }).join('') + '</div>');
     lesson.sections.forEach(function (s) { h.push(sectionHtml(s)); });
     if (lesson.check !== false) h.push(checkHtml(lesson.id));
