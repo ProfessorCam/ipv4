@@ -386,7 +386,9 @@
   function bgIntroSeen() { try { return !!localStorage.getItem(BG_INTRO_KEY); } catch (e) { return false; } }
   function bgLoadMuted() { try { return localStorage.getItem(BG_MUTE_KEY) === '1'; } catch (e) { return false; } }
   function bgLinesNeeded(stage) { return 15 + stage * 5; }
-  function bgDelay(stage) { return Math.max((6.2 - stage * 0.8) * 2, 6) * 1000; }
+  /* Seconds between rows. The original used 12.4, 10.8, 9.2, 7.6 then 6 for ever, which barely changes
+     between levels 1 and 2; this ramps 20% a level (12, 9.6, 7.7, 6.1, 4.9, 3.9, 3.1) and floors at 3 s. */
+  function bgDelay(stage) { return Math.max(Math.round(12000 * Math.pow(0.8, stage)), 3000); }
   function bgBits(n) { var s = ''; for (var i = 7; i >= 0; i--) s += (n >> i) & 1; return s; }
 
   /* One game lives across re-renders: the level toggle rebuilds the DOM, the state stays here. */
@@ -608,7 +610,7 @@
       '<button type="button" class="bg-btn bg-end">End game</button></div></div>' +
       '<div class="bg-modal-wrap"><div class="bg-modal" role="dialog" aria-live="polite"></div></div>' +
       '</div>' +
-      '<p class="hint bg-credit">A clone of the <a href="https://learningcontent.cisco.com/games/binary/index.html" target="_blank" rel="noopener">Binary Game</a> from the Cisco Learning Network: same rules, levels and scoring.</p></div>';
+      '<p class="hint bg-credit">A clone of the <a href="https://learningcontent.cisco.com/games/binary/index.html" target="_blank" rel="noopener">Binary Game</a> from the Cisco Learning Network: same rules and scoring, with a clock that speeds up 20% a level.</p></div>';
   }
   function bgRowHtml(row) {
     var v = row.dec ? row.answer : row.guess, h = [];
