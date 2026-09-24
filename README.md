@@ -5,7 +5,7 @@ Students click a row in the left column and get, in the right column, a plain-En
 widget in it. Every number on the site is computed in the browser from the address the student types;
 nothing is a lookup table.
 
-Rows, grouped in the sidebar: **Bits and octets** (an address as 32 bits, with place values), **Mask and CIDR**
+Rows, grouped in the sidebar: **Bits and octets** (an address as 32 bits, with place values, a powers-of-two slider and a clone of Cisco's Binary Game to drill octet-to-binary against the clock), **Mask and CIDR**
 (the network/host split, `255.255.255.0` = `/24`, why "usable" is two less), **The CIDR slider** (drag from /16
 to /32: /23 = 512, /24 = 256, /25 = 128, with mask, network, broadcast and a 32-bit strip updating live),
 **Splitting a network** (one /24 into two /25s, four /26s, sixty-four /30s, every range listed),
@@ -93,6 +93,6 @@ Miracast / Wi-Fi Direct group-owner subnet as well as RFC 1918 space.
 ## Adding a row
 
 Append an object to `LESSONS` in `site/lessons.js`. The comment at the top of that file lists every key,
-and the section keys `binary`, `anatomy`, `cidr`, `split`, `classify`, `quiz`, `table`, `steps` and
-`columns` each drop a widget or block into the lesson. Add a generator under the row's id in
+and the section keys `binary`, `pow2`, `bgame`, `anatomy`, `cidr`, `split`, `classify`, `quiz`, `table`,
+`steps` and `columns` each drop a widget or block into the lesson. Add a generator under the row's id in
 `site/checks.js` to give it a "Check your understanding" box (or set `check: false` on the row to skip it).

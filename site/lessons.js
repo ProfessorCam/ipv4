@@ -11,6 +11,8 @@
  *   sections  [{ h: heading, p: [paragraphs, may contain <b> <code>], ... }]
  *     binary   - { ip, edit }: an address as four octets of bit boxes, with place values
  *     anatomy  - { kind: 'ip4', value, prefix, left, right }: colour-coded octet strip
+ *     pow2     - { min, max, start }: bits-to-addresses slider drawn as blocks
+ *     bgame    - true: the binary game (a clone of Cisco's), rows of bits against the clock
  *     cidr     - { ip, min, max, start }: the interactive prefix slider
  *     split    - { ip, parent, child }: carve one block into equal subnets
  *     classify - { presets: [...] }: type an address, learn which kind it is
@@ -101,7 +103,21 @@ var LESSONS = [
         e: [
           '2<sup><i>n</i></sup> for <i>n</i> = 0 to 8 covers a single octet; beyond that keep doubling (2<sup>9</sup> = 512, 2<sup>10</sup> = 1024, 2<sup>16</sup> = 65,536, 2<sup>24</sup> = 16,777,216).'
         ]
-      }, pow2: { min: 0, max: 10, start: 3 } }
+      }, pow2: { min: 0, max: 10, start: 3 } },
+      { h: 'The binary game', p: {
+        s: [
+          'Time to practise. This is a copy of Cisco\'s Binary Game. Rows of eight switches pile up on the board. On most rows, flip the switches so their values add up to the number on the right. On some rows the switches are fixed and you type the number they make. A solved row disappears. If eight rows pile up, the game ends.',
+          'Start with the warm-up if this is your first go. The numbers above the board tell you what each switch is worth: 128, 64, 32, 16, 8, 4, 2, 1.'
+        ],
+        m: [
+          'A clone of the classic Cisco Binary Game. Rows arrive on a clock. In a <b>binary row</b> the target is on the right and you toggle the eight bits until they add up to it. In a <b>decimal row</b> the bits are fixed and you type their value. A solved row vanishes; with seven rows on the board, the next one ends the game. Each level needs more rows and the clock runs faster, and from level 4 the place values above the board disappear, so get them into your head: 128, 64, 32, 16, 8, 4, 2, 1.',
+          'Tip: work from the left. Is the number 128 or more? Turn on the 128 bit and subtract it. Do the same with 64, 32 and so on down to 1.'
+        ],
+        e: [
+          'A clone of Cisco\'s Binary Game. Binary rows: toggle bits to hit the target octet value (the starting pattern is a decoy). Decimal rows: type the value of the fixed bits and press Enter. 100 + 25 &times; (level &minus; 1) points per row, 250 for clearing the board. Level 1 is mostly single-bit values and 255; the mask octets 128, 192, 224, 240, 248, 252, 254 come in at level 2; the awkward 190s and 230s arrive from level 5. Guide numbers vanish after level 3.',
+          'Fluency here is what makes mask to prefix, block boundaries and wildcard masks instant later on.'
+        ]
+      }, bgame: true }
     ]
   },
 
