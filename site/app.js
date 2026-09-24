@@ -73,12 +73,30 @@
 
   var STACK_GROUPS = { basics: 'Foundations', cidr: 'Subnets', kinds: 'Kinds of address', practice: 'Practice' };
 
+  /* ---------- which rows the student has finished the check questions on ---------- */
+
+  var DONE_KEY = 'ipv4-checks-done';
+  var doneRows = (function () {
+    try { return JSON.parse(localStorage.getItem(DONE_KEY) || '{}') || {}; } catch (e) { return {}; }
+  })();
+  function saveDone() { try { localStorage.setItem(DONE_KEY, JSON.stringify(doneRows)); } catch (e) { /* no storage */ } }
+  function markNavDone() {
+    Array.prototype.forEach.call(nav.querySelectorAll('.row'), function (b) {
+      var d = !!doneRows[b.dataset.id];
+      b.classList.toggle('done', d);
+      var t = b.querySelector('.tick');
+      if (t) t.hidden = !d;
+      if (d) b.setAttribute('aria-description', 'check questions all correct');
+      else b.removeAttribute('aria-description');
+    });
+  }
+
   function buildNav() {
     var last = null, section = nav;
     LESSONS.forEach(function (l) {
       if (l.stack !== undefined && l.stack !== last) {
         section = document.createElement('div');
-        section.className = 'nav-section ' + String(l.stack);
+        section.className = 'nav-section s-' + String(l.stack);
         var g = document.createElement('div');
         g.className = 'nav-group';
         g.textContent = STACK_GROUPS[l.stack] || String(l.stack);
@@ -91,7 +109,7 @@
       b.type = 'button';
       b.dataset.id = l.id;
       b.title = l.subtitle;
-      b.innerHTML = '<span class="text"><span class="title">' + esc(l.title) + '</span></span>' + (l.chip ? '<span class="lay">' + esc(l.chip) + '</span>' : '');
+      b.innerHTML = '<span class="text"><span class="title">' + esc(l.title) + '</span></span>' + (l.chip ? '<span class="lay">' + esc(l.chip) + '</span>' : '') + '<span class="tick" hidden>✓</span>';
       b.addEventListener('click', function () { location.hash = l.id; });
       section.appendChild(b);
     });
@@ -643,7 +661,7 @@
     var st = checkMemory[rowId];
     if (!st) { st = checkMemory[rowId] = { qs: CHECKS.questions(rowId), answers: ['', '', ''], graded: false }; }
     if (!st.qs) return '';
-    var h = ['<section class="check-sec"><h2>Check your understanding</h2>' +
+    var h = ['<section class="check-sec"><h2>Check your understanding' + (doneRows[rowId] ? ' <span class="done-badge">✓ Completed</span>' : '') + '</h2>' +
       '<p class="hint">' + lv({ s: 'Three quick questions on this row. Type each answer and press Check. New numbers every time.', m: 'Three questions on this row, with fresh numbers each time. Type your answers and press Check; the working is shown for any you miss.', e: 'Three generated questions on this row. Answers are lenient about spacing and thousands separators.' }) + '</p>' +
       '<div class="check" data-row="' + esc(rowId) + '"><ol>'];
     st.qs.forEach(function (q, i) {
@@ -669,9 +687,20 @@
         fbs[i].className = 'cf ' + (ok ? 'ok' : 'bad');
         fbs[i].innerHTML = ok ? '✓ Correct. <span class="why">' + q.explain + '</span>' : '✗ ' + (v.trim() ? 'Not quite.' : 'No answer.') + ' The answer is <b>' + esc(CHECKS.shown(q)) + '</b>. <span class="why">' + q.explain + '</span>';
       });
-      if (!any) { result.innerHTML = 'Type at least one answer first.'; Array.prototype.forEach.call(fbs, function (f) { f.hidden = true; }); Array.prototype.forEach.call(inputs, function (inp) { inp.classList.remove('ok', 'bad'); }); return; }
+      if (!any) { result.className = 'check-result'; el.classList.remove('done'); result.innerHTML = 'Type at least one answer first.'; Array.prototype.forEach.call(fbs, function (f) { f.hidden = true; }); Array.prototype.forEach.call(inputs, function (inp) { inp.classList.remove('ok', 'bad'); }); return; }
       st.graded = true;
-      result.innerHTML = '<b>' + right + ' of ' + st.qs.length + '</b> correct' + (right === st.qs.length ? '. Nice.' : '. Try "New questions" for another go.');
+      var all = right === st.qs.length;
+      el.classList.toggle('done', all);
+      result.className = 'check-result' + (all ? ' done' : '');
+      result.innerHTML = all
+        ? '<span class="done-badge">✓ Completed</span> <b>' + right + ' of ' + st.qs.length + '</b> correct — every answer on this row is right.'
+        : '<b>' + right + ' of ' + st.qs.length + '</b> correct. Look at the working above, or press New questions for another go.';
+      if (all) {
+        if (!doneRows[rowId]) { doneRows[rowId] = true; saveDone(); }
+        markNavDone();
+        var head = el.closest('.check-sec').querySelector('h2');
+        if (head && !head.querySelector('.done-badge')) head.innerHTML += ' <span class="done-badge">✓ Completed</span>';
+      }
     }
     el.querySelector('.check-go').addEventListener('click', grade);
     el.querySelector('.check-new').addEventListener('click', function () {
@@ -781,6 +810,7 @@
 
   buildMenu();
   buildNav();
+  markNavDone();
   window.rerender = function () { var y = main.scrollTop; route(); main.scrollTop = y; };
   wireLevelBar(document.getElementById('level-bar'));
   wireThemeBtn(document.getElementById('level-bar'));
