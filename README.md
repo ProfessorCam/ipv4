@@ -12,7 +12,9 @@ to /32: /23 = 512, /24 = 256, /25 = 128, with mask, network, broadcast and a 32-
 **Private vs public** (the RFC 1918 ranges, CGNAT, NAT, plus an address classifier), **Special addresses**
 (loopback, APIPA, multicast, SSDP, Miracast / Wi-Fi Direct, broadcast, 0.0.0.0, documentation ranges) and
 **Try it yourself** (random questions such as "how many addresses are in 192.168.1.0/28?", checked as you
-go, with the working shown and a bit strip on demand).
+go, with the working shown and a bit strip on demand). Every row ends with **Check your understanding**:
+three questions on that row's topic, generated with fresh numbers each time, graded in place with the
+working shown for any miss.
 
 No frameworks, no build step: plain HTML, CSS and JavaScript. Published to GitHub Pages at
 <https://professorcam.github.io/ipv4/> by `.github/workflows/pages.yml` on every push to `main`.
@@ -45,6 +47,13 @@ falls back to Moderate; an empty string leaves that paragraph out at that level.
 with `{{row:id}}`. Widget captions use the same objects, with `{size}`, `{mask}`, `{net}` and similar
 placeholders filled in from the live values.
 
+## Dark mode
+
+The site opens in dark mode. The sun/moon button next to the reading level switches to light; the choice is
+stored in the browser, and `?theme=light` or `?theme=dark` on the URL overrides it for that visit. The dark
+palette is a set of `[data-theme="dark"]` overrides at the end of `site/style.css`; the shared Packet
+Lessons theme above it is unchanged.
+
 ## Layout
 
 ```
@@ -58,6 +67,7 @@ site/
   lessons.js         ALL teaching content lives here, one object per row
   level.js           the Simple | Moderate | Engineer toggle and the lv() text resolver
   subnet.js          the arithmetic: masks, networks, broadcasts, classification, question generator
+  checks.js          the "Check your understanding" question generators, one per row, and their grader
 ```
 
 ## The maths
@@ -78,4 +88,5 @@ Miracast / Wi-Fi Direct group-owner subnet as well as RFC 1918 space.
 
 Append an object to `LESSONS` in `site/lessons.js`. The comment at the top of that file lists every key,
 and the section keys `binary`, `anatomy`, `cidr`, `split`, `classify`, `quiz`, `table`, `steps` and
-`columns` each drop a widget or block into the lesson.
+`columns` each drop a widget or block into the lesson. Add a generator under the row's id in
+`site/checks.js` to give it a "Check your understanding" box (or set `check: false` on the row to skip it).

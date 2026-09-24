@@ -523,3 +523,92 @@ table.lab.prose td code { white-space: nowrap; }
 table.lab.prose th:first-child { font-family: var(--mono); font-size: 13px; font-weight: 700; white-space: normal; width: 16%; }
 table.lab.prose thead th:first-child, table.lab.prose tr:first-child th { font-family: var(--sans); font-size: 14.5px; }
 .hint code { white-space: nowrap; }
+
+/* ---------- Check your understanding ---------- */
+.check { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 6px 0 16px; }
+.check ol { margin: 0; padding-left: 24px; display: flex; flex-direction: column; gap: 14px; }
+.check li { margin: 0; }
+.check .cq { font-size: 15.5px; margin: 0 0 6px; }
+.check .cq code { white-space: nowrap; }
+.check .ca { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.check .quiz-input { width: 240px; }
+.check .cf { font-size: 14px; margin: 6px 0 0; }
+.check .cf.ok { color: #14532d; }
+.check .cf.bad { color: #b3261e; }
+.check .cf .why { color: var(--muted); }
+.check-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.check-actions { display: flex; gap: 8px; }
+.check-result { font-size: 14.5px; color: var(--muted); }
+.check-result b { color: var(--ink); }
+
+/* ---------- theme toggle, next to the reading level ---------- */
+.level-bar-wrap { gap: 8px; }
+.theme-btn {
+  pointer-events: auto; margin: -20px -28px 0 0; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--muted); cursor: pointer; font-size: 17px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(27,34,51,.08);
+}
+.level-bar-wrap .level-bar { margin-right: 0; }
+.theme-btn:hover { color: var(--accent); border-color: var(--accent); }
+.theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 860px) { .theme-btn { margin: 0; width: 32px; height: 32px; font-size: 15px; } .level-bar-wrap { gap: 6px; } }
+
+/* ---------- dark theme (the default on this site) ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e6eaf2;
+  --muted: #9aa6bb;
+  --line: #2a3447;
+  --bg: #0f1523;
+  --panel: #171f31;
+  --side: #121a2c;
+  --side-ink: #e8ecf5;
+  --side-muted: #97a3bd;
+  --accent: #5b8def;
+  --accent-soft: #1d2b4a;
+}
+[data-theme="dark"] .rail { background: #0a0f1b; }
+[data-theme="dark"] .rail:hover, [data-theme="dark"] .rail.open { background: #111a2e; }
+[data-theme="dark"] .sitemenu { background: #0a0f1b; }
+[data-theme="dark"] .lead { color: #c3cbdb; }
+[data-theme="dark"] code { background: #232c41; color: #dfe6f5; }
+[data-theme="dark"] .banner.ok { background: #10301f; border-color: #2f7a4c; color: #bfe8cc; }
+[data-theme="dark"] .banner.warn { background: #3a2a0c; border-color: #8a6420; color: #f3dfae; }
+[data-theme="dark"] .tag { background: var(--accent-soft); color: #9dbcff; }
+[data-theme="dark"] .tag.off { background: #3b1c1c; color: #f0a2a2; }
+[data-theme="dark"] .fold-btn { background: var(--accent-soft); border-color: #2c3f66; color: #9dbcff; }
+[data-theme="dark"] .fold-btn:hover { background: #253763; }
+[data-theme="dark"] table.pk thead th, [data-theme="dark"] table.diff thead th { background: #1e2740; }
+[data-theme="dark"] table.lab.live tr.primary td { background: #1a2338; }
+[data-theme="dark"] .level-bar, [data-theme="dark"] .theme-btn { box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+[data-theme="dark"] .cmd, [data-theme="dark"] pre.plain { background: #070b14; }
+[data-theme="dark"] .anatomy .byte.oui,  [data-theme="dark"] .anatomy-legend .sw.oui  { background: #16294a; border-color: #3f6fc0; }
+[data-theme="dark"] .anatomy .byte.nic,  [data-theme="dark"] .anatomy-legend .sw.nic  { background: #3a2f12; border-color: #a58a3a; }
+[data-theme="dark"] .anatomy .byte.net,  [data-theme="dark"] .anatomy-legend .sw.net,
+[data-theme="dark"] .bit.net { background: #232052; border-color: #6f66d6; color: #d6d2ff; }
+[data-theme="dark"] .anatomy .byte.host, [data-theme="dark"] .anatomy-legend .sw.host,
+[data-theme="dark"] .bit.host { background: #3d1b46; border-color: #b46bc6; color: #f3d3fa; }
+[data-theme="dark"] .anatomy .byte.mixed, [data-theme="dark"] .anatomy-legend .sw.mixed { background: linear-gradient(135deg, #232052 0 50%, #3d1b46 50% 100%); border-color: #8f6fbf; }
+[data-theme="dark"] .bit:not(.on) { opacity: .45; }
+[data-theme="dark"] .cells.big .bit { background: #1c2437; border-color: #34405a; color: var(--ink); }
+[data-theme="dark"] .cells.big .bit.on { background: #16294a; border-color: #3f6fc0; color: #cfe0ff; }
+[data-theme="dark"] .sizebar { background: #1c2437; }
+[data-theme="dark"] .sizebar i { background: linear-gradient(90deg, #3f6fc0, #6ea0ff); }
+[data-theme="dark"] .cidr-ticks span { border-top-color: #2a3447; }
+[data-theme="dark"] .cidr-ticks span.major { border-top-color: #4a5670; }
+[data-theme="dark"] .cidr-readout { color: #7fa8ff; }
+[data-theme="dark"] .q-cidr { background: var(--accent-soft); color: #cfe0ff; }
+[data-theme="dark"] .quiz-input.ok { border-color: #2f7a4c; background: #10301f; }
+[data-theme="dark"] .quiz-input.bad { border-color: #a33a36; background: #3b1c1c; }
+[data-theme="dark"] .q-table td.ok, [data-theme="dark"] .check .cf.ok { color: #8fdcac; }
+[data-theme="dark"] .q-table td.bad, [data-theme="dark"] .check .cf.bad { color: #f0a2a2; }
+[data-theme="dark"] .widget-err { color: #f0a2a2; }
+[data-theme="dark"] .quiz-chips { background: #0f1523; }
+[data-theme="dark"] .chip[aria-pressed="true"], [data-theme="dark"] .level-btn[aria-pressed="true"], [data-theme="dark"] .row.active, [data-theme="dark"] .btn { color: #fff; }
+[data-theme="dark"] .btn:hover { background: #4a7de0; }
+[data-theme="dark"] .btn.ghost { color: #9dbcff; background: var(--panel); }
+[data-theme="dark"] .btn.ghost:hover { background: var(--accent-soft); }
+[data-theme="dark"] .dl:hover { background: #4a7de0; }
+[data-theme="dark"] .logo, [data-theme="dark"] .rail-logo { color: #7fa8ff; }
+[data-theme="dark"] .menu-item.current { background: rgba(91,141,239,.25); }
+[data-theme="dark"] ::selection { background: #2c4a86; }

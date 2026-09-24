@@ -574,7 +574,86 @@
     return h.join('');
   }
 
+  /* ---------- check your understanding: three fresh questions under every row ---------- */
+
+  var checkMemory = {};   /* row id -> { qs, answers, graded }, so a level change keeps the same questions */
+
+  function checkHtml(rowId) {
+    var st = checkMemory[rowId];
+    if (!st) { st = checkMemory[rowId] = { qs: CHECKS.questions(rowId), answers: ['', '', ''], graded: false }; }
+    if (!st.qs) return '';
+    var h = ['<section class="check-sec"><h2>Check your understanding</h2>' +
+      '<p class="hint">' + lv({ s: 'Three quick questions on this row. Type each answer and press Check. New numbers every time.', m: 'Three questions on this row, with fresh numbers each time. Type your answers and press Check; the working is shown for any you miss.', e: 'Three generated questions on this row. Answers are lenient about spacing and thousands separators.' }) + '</p>' +
+      '<div class="check" data-row="' + esc(rowId) + '"><ol>'];
+    st.qs.forEach(function (q, i) {
+      h.push('<li><p class="cq">' + q.prompt + '</p><div class="ca"><input class="quiz-input" type="text" data-i="' + i + '" autocomplete="off" spellcheck="false" value="' + esc(st.answers[i]) + '" placeholder="' + (q.type === 'ip' ? 'a.b.c.d' : q.type === 'number' ? 'number' : q.type === 'bits' ? '8 bits' : 'one word') + '" aria-label="Answer ' + (i + 1) + '"></div><p class="cf" hidden></p></li>');
+    });
+    h.push('</ol><div class="check-foot"><span class="check-result"></span><div class="check-actions">' +
+      '<button type="button" class="btn check-go">Check</button><button type="button" class="btn ghost check-new">New questions</button></div></div></div></section>');
+    return h.join('');
+  }
+
+  function wireCheck(el) {
+    var rowId = el.dataset.row, st = checkMemory[rowId];
+    var inputs = el.querySelectorAll('.quiz-input'), fbs = el.querySelectorAll('.cf'), result = el.querySelector('.check-result');
+    function grade() {
+      var right = 0, any = false;
+      Array.prototype.forEach.call(inputs, function (inp, i) {
+        var q = st.qs[i], v = inp.value; st.answers[i] = v;
+        if (v.trim()) any = true;
+        var ok = CHECKS.grade(q, v);
+        if (ok) right++;
+        inp.classList.toggle('ok', ok); inp.classList.toggle('bad', !ok);
+        fbs[i].hidden = false;
+        fbs[i].className = 'cf ' + (ok ? 'ok' : 'bad');
+        fbs[i].innerHTML = ok ? '✓ Correct. <span class="why">' + q.explain + '</span>' : '✗ ' + (v.trim() ? 'Not quite.' : 'No answer.') + ' The answer is <b>' + esc(CHECKS.shown(q)) + '</b>. <span class="why">' + q.explain + '</span>';
+      });
+      if (!any) { result.innerHTML = 'Type at least one answer first.'; Array.prototype.forEach.call(fbs, function (f) { f.hidden = true; }); Array.prototype.forEach.call(inputs, function (inp) { inp.classList.remove('ok', 'bad'); }); return; }
+      st.graded = true;
+      result.innerHTML = '<b>' + right + ' of ' + st.qs.length + '</b> correct' + (right === st.qs.length ? '. Nice.' : '. Try "New questions" for another go.');
+    }
+    el.querySelector('.check-go').addEventListener('click', grade);
+    el.querySelector('.check-new').addEventListener('click', function () {
+      checkMemory[rowId] = null;
+      var sec = el.closest('.check-sec'), tmp = document.createElement('div');
+      tmp.innerHTML = checkHtml(rowId);
+      sec.replaceWith(tmp.firstChild);
+      var fresh = main.querySelector('.check[data-row="' + rowId + '"]');
+      wireCheck(fresh);
+      fresh.querySelector('.quiz-input').focus({ preventScroll: true });
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.classList.contains('quiz-input')) { e.preventDefault(); grade(); } });
+    Array.prototype.forEach.call(inputs, function (inp) { inp.addEventListener('input', function () { st.answers[+inp.dataset.i] = inp.value; }); });
+    if (st.graded) grade();
+  }
+
+  /* ---------- light / dark ---------- */
+
+  var THEME_KEY = 'packet-lessons-theme';
+  function currentTheme() { return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'; }
+  function paintThemeBtn(btn) {
+    var dark = currentTheme() === 'dark';
+    btn.innerHTML = dark ? '&#9788;' : '&#9790;';
+    btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+  }
+  function wireThemeBtn(wrap) {
+    if (!wrap) return;
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'theme-btn';
+    paintThemeBtn(btn);
+    btn.addEventListener('click', function () {
+      var next = currentTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* private mode: lasts for this page only */ }
+      paintThemeBtn(btn);
+    });
+    wrap.appendChild(btn);
+  }
+
   function wireWidgets() {
+    Array.prototype.forEach.call(main.querySelectorAll('.check'), wireCheck);
     Array.prototype.forEach.call(main.querySelectorAll('.binary'), wireBinary);
     Array.prototype.forEach.call(main.querySelectorAll('.cidr'), wireCidr);
     Array.prototype.forEach.call(main.querySelectorAll('.split'), wireSplit);
@@ -590,6 +669,7 @@
     h.push('<p class="lead">' + lv(lesson.oneLiner) + '</p>');
     if (lesson.facts) h.push('<div class="facts">' + lesson.facts.map(function (f) { return '<div><span class="k">' + esc(f[0]) + '</span><span class="v">' + lv(f[1]) + '</span></div>'; }).join('') + '</div>');
     lesson.sections.forEach(function (s) { h.push(sectionHtml(s)); });
+    if (lesson.check !== false) h.push(checkHtml(lesson.id));
     h.push('</article>');
     content.innerHTML = h.join('');
     main.scrollTop = 0;
@@ -612,6 +692,7 @@
   buildNav();
   window.rerender = function () { var y = main.scrollTop; route(); main.scrollTop = y; };
   wireLevelBar(document.getElementById('level-bar'));
+  wireThemeBtn(document.getElementById('level-bar'));
   window.addEventListener('hashchange', route);
   route();
 })();

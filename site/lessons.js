@@ -31,12 +31,12 @@ var SITE = {
   port: 8082,
   /* Top menu. href null = not built yet; current: true marks the site you are on. */
   menu: [
-    { label: 'IPv4 Subnetting', href: '#', current: true },
     { label: 'Frames & Packets', href: 'https://professorcam.github.io/frames/' },
     { label: 'Protocols', href: 'https://professorcam.github.io/pcap/' },
     { label: 'Encryption and Protocols', href: 'https://professorcam.github.io/encryption/' },
     { label: 'Packet Forensics', href: 'https://professorcam.github.io/forensics/' },
-    { label: 'Server Basics', href: 'https://professorcam.github.io/servers/' }
+    { label: 'Server Basics', href: 'https://professorcam.github.io/servers/' },
+    { label: 'IPv4 Subnetting', href: '#', current: true }
   ]
 };
 

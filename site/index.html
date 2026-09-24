@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>IPv4 Subnetting</title>
+  <script>
+    /* Theme before first paint. Dark is the default; a saved choice or ?theme=light wins. */
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('packet-lessons-theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)/i.exec(location.search);
+      if (q) t = q[1].toLowerCase();
+      document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark';
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,6 +38,7 @@
   </div>
 
   <script src="subnet.js"></script>
+  <script src="checks.js"></script>
   <script src="lessons.js"></script>
   <script src="level.js"></script>
   <script src="app.js"></script>
