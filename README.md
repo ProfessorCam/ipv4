@@ -14,7 +14,9 @@ to /32: /23 = 512, /24 = 256, /25 = 128, with mask, network, broadcast and a 32-
 **Try it yourself** (random questions such as "how many addresses are in 192.168.1.0/28?", checked as you
 go, with the working shown and a bit strip on demand). Every row ends with **Check your understanding**:
 three questions on that row's topic, generated with fresh numbers each time, graded in place with the
-working shown for any miss.
+working shown for any miss. The last row, **Exam practice**, is CCNA-style multiple choice: choose a mask
+for a host count, network and broadcast, valid host, subnets and hosts, VLSM, route summarisation, ACL
+wildcards, longest-match routing and PC troubleshooting exhibits, all generated with fresh numbers.
 
 No frameworks, no build step: plain HTML, CSS and JavaScript. Published to GitHub Pages at
 <https://professorcam.github.io/ipv4/> by `.github/workflows/pages.yml` on every push to `main`.
@@ -54,6 +56,9 @@ stored in the browser, and `?theme=light` or `?theme=dark` on the URL overrides 
 palette is a set of `[data-theme="dark"]` overrides at the end of `site/style.css`; the shared Packet
 Lessons theme above it is unchanged.
 
+The lesson list can be hidden with the button at the top left of the page, leaving the rail and the lesson.
+The choice is remembered in the browser.
+
 ## Layout
 
 ```
@@ -68,6 +73,7 @@ site/
   level.js           the Simple | Moderate | Engineer toggle and the lv() text resolver
   subnet.js          the arithmetic: masks, networks, broadcasts, classification, question generator
   checks.js          the "Check your understanding" question generators, one per row, and their grader
+  exam.js            the CCNA-style multiple-choice generators for the Exam practice row
 ```
 
 ## The maths

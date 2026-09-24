@@ -87,10 +87,8 @@
       b.className = 'row';
       b.type = 'button';
       b.dataset.id = l.id;
-      b.innerHTML =
-        '<span class="text"><span class="title">' + esc(l.title) + '</span>' +
-        '<span class="sub">' + esc(l.subtitle) + '</span></span>' +
-        (l.chip ? '<span class="lay">' + esc(l.chip) + '</span>' : '');
+      b.title = l.subtitle;
+      b.innerHTML = '<span class="text"><span class="title">' + esc(l.title) + '</span></span>' + (l.chip ? '<span class="lay">' + esc(l.chip) + '</span>' : '');
       b.addEventListener('click', function () { location.hash = l.id; });
       nav.appendChild(b);
     });
@@ -566,12 +564,72 @@
     if (s.split) h.push(splitHtml(s.split));
     if (s.classify) h.push(classifyHtml(s.classify));
     if (s.quiz) h.push(quizHtml(s.quiz));
+    if (s.exam) h.push(examHtml(s.exam));
     if (s.steps) { h.push('<ol class="steps">'); paras(s.steps).forEach(function (t) { h.push('<li>' + t + '</li>'); }); h.push('</ol>'); }
     if (s.columns) h.push(columnsHtml(s.columns));
     if (s.table) h.push(tableHtml(s.table, s.tableClass));
     paras(s.after).forEach(function (p) { h.push('<p>' + p + '</p>'); });
     h.push('</section>');
     return h.join('');
+  }
+
+  /* ---------- widget: CCNA-style exam questions ---------- */
+
+  var examState = { topic: 'mixed', q: null, answered: false, correct: 0, total: 0, streak: 0 };
+  try { var savedEx = JSON.parse(sessionStorage.getItem('ipv4-exam-score') || 'null'); if (savedEx && typeof savedEx.correct === 'number') { examState.correct = savedEx.correct; examState.total = savedEx.total; examState.streak = savedEx.streak || 0; } } catch (e) { /* no storage */ }
+  function saveExam() { try { sessionStorage.setItem('ipv4-exam-score', JSON.stringify({ correct: examState.correct, total: examState.total, streak: examState.streak })); } catch (e) { /* ignore */ } }
+
+  function examHtml() {
+    return '<div class="exam quiz">' +
+      '<div class="quiz-bar"><div class="quiz-chips" role="group" aria-label="Topic">' + EXAM.TOPICS.map(function (t) { return '<button type="button" class="chip" data-topic="' + t.id + '" aria-pressed="' + (t.id === examState.topic) + '">' + t.label + '</button>'; }).join('') + '</div></div>' +
+      '<div class="quiz-card"></div>' +
+      '<div class="quiz-foot"><span class="quiz-score"></span><button type="button" class="btn ghost quiz-reset" title="Reset the score">Reset score</button></div></div>';
+  }
+
+  function examScore(el) {
+    el.querySelector('.quiz-score').innerHTML = examState.total ? 'Correct <b>' + examState.correct + '</b> of ' + examState.total + (examState.streak >= 3 ? ' · streak ' + examState.streak : '') : 'No answers yet';
+  }
+
+  function renderExam(el) {
+    var q = examState.q, card = el.querySelector('.quiz-card'), letters = 'ABCD';
+    var h = ['<p class="q-prompt ex-stem">' + q.stem + '</p>'];
+    if (q.exhibit) h.push('<div class="exhibit">' + q.exhibit + '</div>');
+    h.push('<form class="q-form ex-form"><div class="ex-choices" role="radiogroup" aria-label="Answers">');
+    q.choices.forEach(function (c, i) {
+      h.push('<label class="ex-choice"><input type="radio" name="ex" value="' + i + '"' + (examState.answered ? ' disabled' : '') + '><span class="ex-letter">' + letters[i] + '</span><span class="ex-text">' + c.text + '</span></label>');
+    });
+    h.push('</div><div class="q-actions"><button type="submit" class="btn q-check"' + (examState.answered ? ' disabled' : '') + '>Check</button><button type="button" class="btn ghost q-next">Next question</button></div></form><div class="q-feedback" aria-live="polite"></div>');
+    card.innerHTML = h.join('');
+    examScore(el);
+  }
+
+  function newExam(el) { examState.q = EXAM.question(examState.topic); examState.answered = false; renderExam(el); }
+
+  function wireExam(el) {
+    if (!examState.q) examState.q = EXAM.question(examState.topic);
+    renderExam(el);
+    el.addEventListener('click', function (e) {
+      var chip = e.target.closest('.chip');
+      if (chip) { examState.topic = chip.dataset.topic; Array.prototype.forEach.call(el.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', c.dataset.topic === examState.topic); }); newExam(el); return; }
+      if (e.target.closest('.q-next')) { newExam(el); return; }
+      if (e.target.closest('.quiz-reset')) { examState.correct = 0; examState.total = 0; examState.streak = 0; saveExam(); examScore(el); }
+    });
+    el.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (examState.answered) return;
+      var picked = el.querySelector('input[name="ex"]:checked');
+      if (!picked) { el.querySelector('.q-feedback').innerHTML = '<div class="banner warn">Choose an answer first.</div>'; return; }
+      var q = examState.q, i = +picked.value, ok = !!q.choices[i].correct, letters = 'ABCD', right = 0;
+      q.choices.forEach(function (c, j) { if (c.correct) right = j; });
+      examState.answered = true; examState.total++; if (ok) { examState.correct++; examState.streak++; } else examState.streak = 0; saveExam();
+      Array.prototype.forEach.call(el.querySelectorAll('input[name="ex"]'), function (inp) { inp.disabled = true; });
+      Array.prototype.forEach.call(el.querySelectorAll('.ex-choice'), function (lab, j) { lab.classList.toggle('right', j === right); lab.classList.toggle('wrong', j === i && !ok); });
+      el.querySelector('.q-check').disabled = true;
+      examScore(el);
+      el.querySelector('.q-feedback').innerHTML = '<div class="banner ' + (ok ? 'ok' : 'warn') + '"><p class="q-verdict"><b>' + (ok ? 'Correct.' : 'Not quite. The answer is ' + letters[right] + '.') + '</b></p><div class="q-worked"><p>' + q.explain + '</p></div></div>';
+      el.querySelector('.q-next').focus({ preventScroll: true });
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' && examState.answered && !e.target.closest('button')) { e.preventDefault(); newExam(el); } });
   }
 
   /* ---------- check your understanding: three fresh questions under every row ---------- */
@@ -627,6 +685,33 @@
     if (st.graded) grade();
   }
 
+  /* ---------- collapsible sidebar ---------- */
+
+  var NAV_KEY = 'packet-lessons-nav';
+  function navCollapsed() { return document.querySelector('.app').classList.contains('nav-collapsed'); }
+  function paintNavBtn(btn) {
+    var c = navCollapsed();
+    btn.innerHTML = c ? '&#8250; <span>Lessons</span>' : '&#8249; <span>Hide</span>';
+    btn.title = c ? 'Show the lesson list' : 'Hide the lesson list';
+    btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-expanded', c ? 'false' : 'true');
+  }
+  function wireNavToggle(wrap) {
+    if (!wrap) return;
+    var app = document.querySelector('.app'), saved = null;
+    try { saved = localStorage.getItem(NAV_KEY); } catch (e) { /* no storage */ }
+    if (saved === 'collapsed') app.classList.add('nav-collapsed');
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'side-toggle'; btn.setAttribute('aria-controls', 'nav');
+    paintNavBtn(btn);
+    btn.addEventListener('click', function () {
+      app.classList.toggle('nav-collapsed');
+      try { localStorage.setItem(NAV_KEY, navCollapsed() ? 'collapsed' : 'open'); } catch (e) { /* ignore */ }
+      paintNavBtn(btn);
+    });
+    wrap.insertBefore(btn, wrap.firstChild);
+  }
+
   /* ---------- light / dark ---------- */
 
   var THEME_KEY = 'packet-lessons-theme';
@@ -658,7 +743,8 @@
     Array.prototype.forEach.call(main.querySelectorAll('.cidr'), wireCidr);
     Array.prototype.forEach.call(main.querySelectorAll('.split'), wireSplit);
     Array.prototype.forEach.call(main.querySelectorAll('.classify'), wireClassify);
-    Array.prototype.forEach.call(main.querySelectorAll('.quiz'), wireQuiz);
+    Array.prototype.forEach.call(main.querySelectorAll('.quiz:not(.exam)'), wireQuiz);
+    Array.prototype.forEach.call(main.querySelectorAll('.exam'), wireExam);
   }
 
   function renderLesson(lesson) {
@@ -693,6 +779,7 @@
   window.rerender = function () { var y = main.scrollTop; route(); main.scrollTop = y; };
   wireLevelBar(document.getElementById('level-bar'));
   wireThemeBtn(document.getElementById('level-bar'));
+  wireNavToggle(document.getElementById('level-bar'));
   window.addEventListener('hashchange', route);
   route();
 })();

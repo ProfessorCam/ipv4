@@ -563,5 +563,59 @@ var LESSONS = [
         ]
       }}
     ]
+  },
+
+  /* ------------------------------------------------------------------ exam */
+  {
+    id: 'exam',
+    stack: 'practice',
+    chip: 'CCNA',
+    check: false,
+    title: 'Exam practice',
+    subtitle: 'CCNA-style multiple choice, with fresh numbers every time',
+    facts: [
+      ['What these are like', {
+        s: 'The kind of questions on the Cisco CCNA test: a short scenario, four answers, one right.',
+        m: 'Scenario questions in the style of the CCNA (200-301) exam: choose a mask for a host count, find network and broadcast, spot a misconfigured PC, pick the longest-match route, write an ACL wildcard, summarise routes, allocate with VLSM.',
+        e: 'CCNA 200-301 item styles for IPv4 addressing: mask selection, address arithmetic, VLSM allocation, route summarisation, wildcard masks, longest-prefix match and host misconfiguration exhibits. Every value is generated, so distractors change each time.'
+      }],
+      ['How to use them', {
+        s: 'Pick an answer, press Check, read why. Then Next. Work until you get ten in a row.',
+        m: 'Pick a topic or leave it on Mixed, choose an answer and press Check. The explanation shows the working the exam expects you to do in your head. Aim for a run of ten correct before the real thing.',
+        e: 'Answer, check, read the derivation. The distractors are the classic errors (mask instead of wildcard, off-by-one host bits, unaligned summary, gateway outside the subnet); if one tempts you, that is the concept to revisit.'
+      }]
+    ],
+    oneLiner: {
+      s: 'Practice questions that look and feel like the real certification exam.',
+      m: 'Multiple-choice questions in the CCNA style covering everything on this site, generated with new numbers every time.',
+      e: 'Generated CCNA-style items with plausible distractors, covering mask selection, address arithmetic, VLSM, summarisation, ACL wildcards, longest match and troubleshooting.'
+    },
+    sections: [
+      { h: 'Questions', p: {
+        s: ['Read the question, choose one answer, press Check.'],
+        m: ['One question at a time. Some have an exhibit, as on the exam. Your score is kept for this browser tab.'],
+        e: ['Single-answer items. Exhibits are rendered inline. Score persists per tab (sessionStorage).']
+      }, exam: {} },
+      { h: 'The methods the exam expects', p: {
+        s: [
+          '<b>Choose a mask:</b> add 2 to the hosts you need, then find the next power of two. That many host bits.',
+          '<b>Find the block:</b> 256 minus the interesting mask number is the step. Count up in steps until you pass the address; the network is the last step you did not pass.',
+          '<b>Which route:</b> the most specific matching route wins, however the table is ordered.',
+          '<b>Wildcard:</b> 255.255.255.255 minus the mask.'
+        ],
+        m: [
+          '<b>Mask for N hosts.</b> 2<sup>h</sup> − 2 ≥ N; the smallest h that works gives the prefix 32 − h. 60 hosts → 2<sup>6</sup> − 2 = 62 → /26.',
+          '<b>Network of a host.</b> Block size = 256 − interesting octet of the mask. Network = the largest multiple of the block size not above the host\'s octet. Broadcast = next network − 1.',
+          '<b>VLSM.</b> Sort the requirements largest first, size each subnet by the rule above, and place them back to back starting at the block\'s network address. Alignment takes care of itself.',
+          '<b>Summarisation.</b> For k consecutive /24s starting on a multiple of k, the summary is /(24 − log<sub>2</sub> k).',
+          '<b>Wildcard.</b> 255.255.255.255 − mask, or "block size − 1" in the interesting octet.',
+          '<b>Longest match.</b> Every matching route is a candidate; the longest prefix wins. The default route matches everything and wins only when nothing else does.',
+          '<b>Troubleshooting exhibits.</b> Check three things for each host: is the address a valid host in its subnet, do the masks agree, and is the gateway inside the subnet.'
+        ],
+        e: [
+          'h = ⌈log<sub>2</sub>(N + 2)⌉, p = 32 − h. Network = ip AND mask; broadcast = network OR ~mask. VLSM: allocate in descending size for natural alignment. Summary of 2<sup>k</sup> aligned /24s = /(24 − k). Wildcard = ~mask. FIB lookup = longest prefix match, 0.0.0.0/0 last. Host checks: address ∈ (network, broadcast), mask consistency, gateway on-link.'
+        ]
+      }}
+    ]
   }
 ];
