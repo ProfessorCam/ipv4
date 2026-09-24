@@ -226,7 +226,7 @@ var LESSONS = [
     subtitle: 'Move the line, watch the block halve and double',
     oneLiner: '',
     sections: [
-      { cidr: { ip: '192.168.0.0', min: 16, max: 32, start: 24, caption: {
+      { cidr: { ip: '192.168.0.0', min: 8, max: 32, start: 24, caption: {
         s: 'With <b>/{p}</b> the network keeps {p} switches and leaves <b>{hb}</b> for hosts. {hb} switches can be set 2<sup>{hb}</sup> = <b>{size}</b> ways, so the block has {size} addresses. Take away the first and last and <b>{usable}</b> machines can use it.',
         m: '<b>/{p}</b> leaves <b>{hb} host bits</b>, so the block holds 2<sup>{hb}</sup> = <b>{size}</b> addresses, from <code>{net}</code> (the network address) to <code>{bc}</code> (broadcast). That leaves <b>{usable}</b> usable host addresses. The mask is <code>{mask}</code>.',
         e: '<b>/{p}</b>: mask <code>{mask}</code>, wildcard <code>{wild}</code>. 2<sup>{hb}</sup> = <b>{size}</b> addresses, <code>{net}</code> to <code>{bc}</code>; <b>{usable}</b> assignable. Next block starts at <code>{next}</code>.'

@@ -126,7 +126,7 @@
   /* 32 bit cells in four octets. The first `prefix` cells are network, the rest host. */
   function bitStripHtml(ip, prefix, opts) {
     opts = opts || {};
-    var bits = S.octetBits(ip), h = ['<div class="bitstrip" aria-label="' + esc(S.fmtIp(ip)) + ' as 32 bits, ' + prefix + ' network bits">'];
+    var bits = S.octetBits(ip), h = ['<div class="bitstrip" aria-label="' + esc(opts.label || S.fmtIp(ip)) + ' as 32 bits, ' + prefix + ' network bits">'];
     for (var o = 0; o < 4; o++) {
       h.push('<span class="octet"><span class="cells">');
       for (var i = 0; i < 8; i++) {
@@ -255,7 +255,7 @@
       '<div class="cidr-ticks">' + tickHtml(c.min, c.max) + '</div>' +
       '<div class="cidr-tiles"></div>' +
       '<div class="sizebar-wrap"><div class="sizebar"><i></i></div><div class="sizebar-labels"><span>1 address</span><span class="sizebar-note"></span><span>/' + c.min + ' = ' + fmtN(S.blockSize(c.min)) + '</span></div></div>' +
-      '<div class="cidr-strip"></div>' +
+      '<p class="hint cidr-maskline"></p><div class="cidr-strip"></div>' +
       '<p class="cidr-caption"></p></div>';
   }
 
@@ -280,6 +280,7 @@
     var range = el.querySelector('.cidr-range'), readout = el.querySelector('.cidr-readout'), n = el.querySelector('.cidr-n');
     var tilesEl = el.querySelector('.cidr-tiles'), strip = el.querySelector('.cidr-strip'), cap = el.querySelector('.cidr-caption');
     var bar = el.querySelector('.sizebar i'), note = el.querySelector('.sizebar-note');
+    var maskline = el.querySelector('.cidr-maskline');
     var min = +range.min, max = +range.max;
     function apply() {
       var p = +range.value, d = S.describe(ip, p);
@@ -288,7 +289,8 @@
       n.textContent = fmtN(d.size);
       range.setAttribute('aria-valuetext', '/' + p + ', ' + fmtN(d.size) + ' addresses, mask ' + S.fmtIp(d.mask));
       tilesEl.innerHTML = tiles(d);
-      strip.innerHTML = bitStripHtml(ip, p);
+      maskline.innerHTML = 'The subnet mask <code>' + S.fmtIp(d.mask) + '</code> as 32 bits: a solid run of ' + p + ' one' + (p === 1 ? '' : 's') + ' over the network part, then ' + d.hostBits + ' zero' + (d.hostBits === 1 ? '' : 's') + ' over the host part.';
+      strip.innerHTML = bitStripHtml(d.mask, p, { label: 'subnet mask ' + S.fmtIp(d.mask) });
       /* log scale: the bar is full at /min and empty at /max */
       var frac = (max - p) / (max - min);
       bar.style.width = Math.max(0.6, frac * 100) + '%';
