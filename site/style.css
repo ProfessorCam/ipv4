@@ -416,36 +416,18 @@ sup { font-size: .72em; line-height: 0; }
 .bitstrip .octet-val { font-family: var(--mono); font-size: 13px; color: var(--muted); }
 
 /* binary widget: bigger cells with place values */
-.binary { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 10px; margin: 6px 0 14px; container-type: inline-size; }
+.binary { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 12px; margin: 6px 0 14px; }
 .binary .widget-row { margin-top: 0; }
-/* all four octets stay on one line: the cells share out the width instead of wrapping */
-.octets { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 12px 18px; }
-.octet-box { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.cells.big { display: flex; gap: 2px; width: 100%; }
-.cells.big .bit { flex: 1 1 0; width: auto; min-width: 0; height: 46px; overflow: hidden; background: #f2f4f7; border-color: #c4ccd8; color: var(--ink); gap: 1px; cursor: default; }
+/* one octet per line: full-size cells with their place values, the sum alongside */
+.octets { display: flex; flex-direction: column; gap: 8px; }
+.octet-box { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.cells.big { display: flex; flex: 0 0 auto; gap: 3px; }
+.cells.big .bit { width: 34px; height: 44px; background: #f2f4f7; border-color: #c4ccd8; color: var(--ink); gap: 1px; cursor: default; }
 .cells.big .bit.on { background: #e9f2ff; border-color: #8fb4ee; color: #1d3f7a; }
-.cells.big .bit b { font-size: clamp(12px, 2.1cqw, 17px); line-height: 1; }
-.cells.big .bit small { font-size: clamp(7.5px, 1.25cqw, 9.5px); font-weight: 500; color: var(--muted); line-height: 1; white-space: nowrap; }
-.octet-sum { font-family: var(--mono); font-size: clamp(11px, 1.5cqw, 13px); line-height: 1.35; text-align: center; color: var(--muted); }
-.octet-sum b { color: var(--ink); font-size: clamp(12px, 1.8cqw, 15px); }
-/* not enough room for the place values: keep one line, keep the bits, drop the small print (the tooltip still has it) */
-@container (max-width: 610px) {
-  .cells.big { gap: 1.5px; }
-  .cells.big .bit { height: 26px; border-width: 1.5px; border-radius: 4px; }
-  .cells.big .bit b { font-size: clamp(10px, 2.4cqw, 15px); }
-  .cells.big .bit small { display: none; }
-}
-/* below this the shared cells would be slivers, so fall back to fixed cells over two rows */
-@container (max-width: 470px) {
-  .octets { flex-wrap: wrap; justify-content: center; gap: 12px 18px; }
-  .octet-box { flex: 0 0 auto; }
-  .cells.big { width: auto; gap: 3px; }
-  .cells.big .bit { flex: 0 0 auto; width: 28px; height: 40px; }
-  .cells.big .bit b { font-size: 16px; }
-  .cells.big .bit small { font-size: 9px; }
-  .octet-sum { font-size: 12.5px; }
-  .octet-sum b { font-size: 14px; }
-}
+.cells.big .bit b { font-size: 17px; line-height: 1; }
+.cells.big .bit small { font-size: 9.5px; font-weight: 500; color: var(--muted); line-height: 1; }
+.octet-sum { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.octet-sum b { color: var(--ink); font-size: 15px; }
 
 /* CIDR slider */
 .cidr { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px 14px; margin: 6px 0 16px; }
@@ -531,6 +513,8 @@ table.lab.split-rows td:last-child { font-family: var(--mono); font-size: 13px; 
   .cidr-tiles .netfacts { grid-template-columns: 1fr 1fr; }
   .bitstrip { gap: 8px 10px; }
   .bitstrip .bit { width: 20px; height: 24px; font-size: 12px; }
+  .cells.big .bit { width: 28px; height: 40px; }
+  .cells.big .bit b { font-size: 15px; }
   .q-field span { min-width: 0; width: 100%; }
   .quiz-input { width: 100%; }
 }
