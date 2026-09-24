@@ -831,3 +831,18 @@ button.bg-digits:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
   .bg-calc { width: 132px; }
   .bg-modal { max-width: 92%; }
 }
+
+/* ---------- address / mask / network, bit under bit (the anatomy widget) ---------- */
+.maskstack { display: flex; flex-wrap: wrap; gap: 12px 22px; margin: 8px 0 8px; }
+.maskstack .octet { display: flex; flex-direction: column; gap: 3px; }
+.ms-row { display: flex; align-items: center; gap: 6px; }
+.ms-lab { width: 60px; font-style: normal; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: right; }
+.maskstack .cells { display: flex; gap: 3px; }
+.maskstack .bit { width: 22px; height: 26px; font-size: 13px; }
+.maskstack .octet-val { width: 30px; font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: right; }
+.maskstack .addr .bit.unused { text-decoration: line-through; opacity: .35; }
+.maskstack .mask .bit { border-style: dashed; }
+.maskstack .mask .bit.on { border-style: solid; }
+.maskstack .res .bit.host { opacity: .35; }
+.maskstack .res .ms-lab, .maskstack .res .octet-val { color: var(--ink); font-weight: 700; }
+@media (max-width: 480px) { .maskstack .bit { width: 19px; height: 24px; font-size: 12px; } .ms-lab { width: 52px; } .maskstack { gap: 12px 14px; } }

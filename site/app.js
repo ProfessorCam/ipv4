@@ -142,6 +142,39 @@
     return h.join('');
   }
 
+  /* Address, mask and network laid out bit under bit, one block per octet: which address bits the mask
+     keeps (its 1s, the network) and which it ignores (its 0s, the host). */
+  function maskStackHtml(ip, prefix) {
+    var mask = S.maskOf(prefix), net = (ip & mask) >>> 0;
+    var ab = S.octetBits(ip), mb = S.octetBits(mask), nb = S.octetBits(net), h = [];
+    h.push('<div class="maskstack" aria-label="' + esc(S.fmtIp(ip)) + ' under mask ' + esc(S.fmtIp(mask)) + ': address bits, mask bits and the resulting network ' + esc(S.fmtIp(net)) + '">');
+    for (var o = 0; o < 4; o++) {
+      var rows = [
+        ['addr', 'Address', ab[o], (ip >>> (24 - o * 8)) & 255],
+        ['mask', 'Mask', mb[o], (mask >>> (24 - o * 8)) & 255],
+        ['res', 'Network', nb[o], (net >>> (24 - o * 8)) & 255]
+      ];
+      h.push('<span class="octet">');
+      rows.forEach(function (r) {
+        h.push('<span class="ms-row ' + r[0] + '"><em class="ms-lab">' + r[1] + '</em><span class="cells">');
+        for (var i = 0; i < 8; i++) {
+          var idx = o * 8 + i, used = idx < prefix, role = used ? 'net' : 'host', b = r[2][i], v = 1 << (7 - i), title;
+          if (r[0] === 'addr') title = 'address bit ' + (idx + 1) + ' (place value ' + v + '): ' + (used ? 'used, it helps name the network' : 'not used by the mask, it names the host');
+          else if (r[0] === 'mask') title = 'mask bit ' + (idx + 1) + ': ' + (used ? '1, keep this address bit' : '0, ignore this address bit');
+          else title = 'network bit ' + (idx + 1) + ': ' + (used ? 'address bit kept' : 'zeroed by the mask');
+          h.push('<i class="bit ' + role + (b === '1' ? ' on' : '') + (r[0] === 'addr' && !used ? ' unused' : '') + '" title="' + title + '">' + b + '</i>');
+        }
+        h.push('</span><span class="octet-val">' + r[3] + '</span></span>');
+      });
+      h.push('</span>');
+    }
+    h.push('</div>');
+    h.push('<div class="anatomy-legend"><span><i class="sw net"></i><b>Used by the mask:</b> ' + prefix + ' bit' + (prefix === 1 ? '' : 's') + ' (mask 1s, the network part)</span>' +
+      '<span><i class="sw host"></i><b>Not used:</b> ' + (32 - prefix) + ' bit' + (32 - prefix === 1 ? '' : 's') + ' (mask 0s, the host part)</span>' +
+      '<span><b>Network:</b> <code>' + esc(S.fmtIp(ip)) + '</code> AND <code>' + esc(S.fmtIp(mask)) + '</code> = <code>' + esc(S.fmtIp(net)) + '</code></span></div>');
+    return h.join('');
+  }
+
   function tiles(d) {
     var t = [
       ['Addresses in block', '<b>' + fmtN(d.size) + '</b>'],
@@ -221,8 +254,8 @@
     h.push('<p class="hint">Mask <code>' + S.fmtIp(S.maskOf(prefix)) + '</code>. ' +
       (whole ? 'The line falls on a dot: ' + (prefix / 8) + ' whole octet' + (prefix === 8 ? '' : 's') + ' to the network, ' + (4 - prefix / 8) + ' to the host.'
              : 'The line falls inside octet ' + (Math.floor(prefix / 8) + 1) + ', so that octet is split: ' + (prefix % 8) + ' network bits and ' + (8 - prefix % 8) + ' host bits.') +
-      ' The same address as bits, with the mask drawn as the colour change:</p>');
-    h.push(bitStripHtml(ip, prefix));
+      ' Below, octet by octet: the address as bits, the mask as bits beneath it (a 1 means that address bit is used to name the network, a 0 means it is ignored), and what is left after the AND, the network address.</p>');
+    h.push(maskStackHtml(ip, prefix));
     return h.join('');
   }
 
