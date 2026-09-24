@@ -1,0 +1,8 @@
+services:
+  ipv4:
+    build: .
+    container_name: ipv4
+    # Nothing on this site needs the host's network; plain port publishing is enough.
+    ports:
+      - "8082:8082"
+    restart: unless-stopped

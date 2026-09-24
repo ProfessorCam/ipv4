@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPv4 Subnetting</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <button id="menu-btn" class="rail" type="button" aria-label="Open site menu" aria-expanded="false" aria-controls="sitemenu">
+      <span class="rail-chevron" aria-hidden="true">&#8250;</span>
+      <span class="rail-logo" aria-hidden="true">&#9673;</span>
+    </button>
+    <nav id="sitemenu" class="sitemenu" aria-label="Sites"></nav>
+    <aside class="side">
+      <div class="brand">
+        <a href="#" class="brand-link"><span class="logo" aria-hidden="true">&#9673;</span><span>Packet Lessons</span></a>
+        <p class="brand-sub"><b>IPv4 Subnetting.</b> How an address splits into network and host, how big a block is, and which addresses are special.</p>
+      </div>
+      <nav id="nav" class="nav" aria-label="Lessons"></nav>
+      <div class="side-foot">
+        Every number on this site is worked out live from the address you type.<br>
+        Nothing is looked up; it is all arithmetic on 32 bits.
+      </div>
+    </aside>
+    <main id="main" class="main"><div class="level-bar-wrap" id="level-bar"></div><div id="content" aria-live="polite"></div></main>
+  </div>
+
+  <script src="subnet.js"></script>
+  <script src="lessons.js"></script>
+  <script src="level.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
