@@ -5,7 +5,8 @@ Students click a row in the left column and get, in the right column, a plain-En
 widget in it. Every number on the site is computed in the browser from the address the student types;
 nothing is a lookup table.
 
-Rows, grouped in the sidebar: **Bits and octets** (an address as 32 bits, with place values, a powers-of-two slider and a clone of Cisco's Binary Game to drill octet-to-binary against the clock), **Mask and CIDR**
+Rows, grouped in the sidebar: **Bits and octets** (an address as 32 bits, with place values and a powers-of-two slider), **The binary game**
+(a clone of Cisco's Binary Game in its own colours and with its sounds: octets to bits and back against the clock), **Mask and CIDR**
 (the network/host split, `255.255.255.0` = `/24`, why "usable" is two less), **The CIDR slider** (drag from /16
 to /32: /23 = 512, /24 = 256, /25 = 128, with mask, network, broadcast and a 32-bit strip updating live),
 **Splitting a network** (one /24 into two /25s, four /26s, sixty-four /30s, every range listed),

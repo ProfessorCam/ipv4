@@ -371,18 +371,67 @@
     [[0, .1], [1, .1], [2, .4], [3, .4]],
     [[0, .1], [1, .1], [2, .1], [3, .2], [4, .2], [5, .3]]
   ];
-  var BG_MAX = 7, BG_GUIDE_STAGE = 2, BG_TOP = 5;
-  var BG_SCORES_KEY = 'ipv4-binary-game-scores', BG_INTRO_KEY = 'ipv4-binary-game-intro';
+  var BG_MAX = 7, BG_GUIDE_STAGE = 2, BG_TOP = 5, BG_WARN_EVERY = 3000;
+  var BG_SCORES_KEY = 'ipv4-binary-game-scores', BG_INTRO_KEY = 'ipv4-binary-game-intro', BG_MUTE_KEY = 'ipv4-binary-game-muted';
+  /* Sound effects are synthesised below. To use recorded files instead, set this to a folder (e.g. 'sounds/')
+     holding bit_on, bit_off, problem_complete, board_clear, game_over, warning, click_button,
+     calculator_open and calculator_close as .mp3. */
+  var BG_SOUND_DIR = '';
 
   function bgLoadScores() { try { var s = JSON.parse(localStorage.getItem(BG_SCORES_KEY) || '[]'); return Array.isArray(s) ? s : []; } catch (e) { return []; } }
   function bgIntroSeen() { try { return !!localStorage.getItem(BG_INTRO_KEY); } catch (e) { return false; } }
+  function bgLoadMuted() { try { return localStorage.getItem(BG_MUTE_KEY) === '1'; } catch (e) { return false; } }
   function bgLinesNeeded(stage) { return 15 + stage * 5; }
   function bgDelay(stage) { return Math.max((6.2 - stage * 0.8) * 2, 6) * 1000; }
   function bgBits(n) { var s = ''; for (var i = 7; i >= 0; i--) s += (n >> i) & 1; return s; }
 
   /* One game lives across re-renders: the level toggle rebuilds the DOM, the state stays here. */
-  var bg = { mode: 'idle', paused: false, stage: 0, score: 0, lines: 0, rows: [], nextId: 1, elapsed: 0, last: 0,
-    timer: null, intro: '', toast: '', toastTimer: null, rank: -1, wipe: false, scores: bgLoadScores(), introDone: bgIntroSeen() };
+  var bg = { mode: 'idle', modal: '', paused: false, ending: false, stage: 0, score: 0, lines: 0, rows: [], nextId: 1,
+    elapsed: 0, last: 0, timer: null, warnTimer: null, intro: '', toast: '', toastTimer: null, rank: -1, wipe: false,
+    calcId: null, calcVal: '', scores: bgLoadScores(), introDone: bgIntroSeen(), muted: bgLoadMuted() };
+
+  /* ---- sound: short synthesised effects, pitched and timed from the original's ---- */
+  var bgAudioCtx = null, bgAudioFiles = {};
+  /* [start s, Hz, length s, wave, gain] */
+  var BG_SFX = {
+    bit_on: [[0, 1620, 0.05, 'square', 0.16]],
+    bit_off: [[0, 1170, 0.06, 'square', 0.16]],
+    click_button: [[0, 3300, 0.03, 'square', 0.08]],
+    calculator_open: [[0, 2600, 0.04, 'square', 0.1]],
+    calculator_close: [[0, 1900, 0.04, 'square', 0.1]],
+    problem_complete: [[0, 1136, 0.04, 'square', 0.14], [0.02, 1034, 0.04, 'square', 0.14], [0.04, 2081, 0.04, 'square', 0.14], [0.08, 1163, 0.04, 'square', 0.16], [0.14, 1750, 0.1, 'square', 0.2]],
+    board_clear: [[0, 1381, 0.05, 'square', 0.16], [0.04, 2775, 0.05, 'square', 0.16], [0.12, 1550, 0.08, 'square', 0.16], [0.24, 2336, 0.14, 'square', 0.2]],
+    game_over: [[0, 690, 0.14, 'sawtooth', 0.2], [0.2, 660, 0.22, 'sawtooth', 0.2]],
+    warning: [[0, 86, 0.16, 'sine', 0.7], [0.18, 86, 0.16, 'sine', 0.7], [0.36, 86, 0.14, 'sine', 0.6]]
+  };
+  function bgSound(name) {
+    if (bg.muted) return;
+    if (BG_SOUND_DIR) {
+      try { var a = bgAudioFiles[name] || (bgAudioFiles[name] = new Audio(BG_SOUND_DIR + name + '.mp3')); a.currentTime = 0; a.play(); } catch (e) { /* no audio */ }
+      return;
+    }
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext, r = BG_SFX[name];
+      if (!AC || !r) return;
+      if (!bgAudioCtx) bgAudioCtx = new AC();
+      if (bgAudioCtx.state === 'suspended') bgAudioCtx.resume();
+      var t = bgAudioCtx.currentTime;
+      r.forEach(function (n) {
+        var o = bgAudioCtx.createOscillator(), g = bgAudioCtx.createGain(), at = t + n[0];
+        o.type = n[3]; o.frequency.setValueAtTime(n[1], at);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.linearRampToValueAtTime(n[4], at + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + n[2]);
+        o.connect(g); g.connect(bgAudioCtx.destination);
+        o.start(at); o.stop(at + n[2] + 0.02);
+      });
+    } catch (e) { /* no audio */ }
+  }
+  function bgToggleSound() {
+    bg.muted = !bg.muted;
+    try { localStorage.setItem(BG_MUTE_KEY, bg.muted ? '1' : '0'); } catch (e) { /* no storage */ }
+    bgSound('click_button');
+  }
 
   function bgPick() {
     var st = BG_STAGES[Math.min(bg.stage, BG_STAGES.length - 1)], r = Math.random(), gi = st[0][0];
@@ -396,9 +445,9 @@
     /* a binary row starts on a decoy pattern: another value from the same group */
     return { id: bg.nextId++, answer: pool[ai], guess: dec ? -1 : pool[(ai + 1) % pool.length], dec: dec };
   }
-
   function bgRow(id) { for (var i = 0; i < bg.rows.length; i++) if (bg.rows[i].id === id) return bg.rows[i]; return null; }
 
+  /* ---- the clock and the seven-row warning ---- */
   function bgStartClock() { bgStopClock(); bg.last = Date.now(); bg.timer = setInterval(bgTick, 100); }
   function bgStopClock() { if (bg.timer) { clearInterval(bg.timer); bg.timer = null; } }
   function bgTick() {
@@ -408,39 +457,52 @@
     bg.elapsed += now - bg.last; bg.last = now;
     var d = bgDelay(bg.stage);
     if (bg.elapsed >= d) { bg.elapsed -= d; bgAddRow(); bgRefresh(el); }
-    else bgSyncHud(el);
+  }
+  function bgWarnSync() {
+    var on = bg.mode === 'play' && !bg.paused && bg.rows.length >= BG_MAX;
+    if (on && !bg.warnTimer) { bgSound('warning'); bg.warnTimer = setInterval(function () { bgSound('warning'); }, BG_WARN_EVERY); }
+    if (!on && bg.warnTimer) { clearInterval(bg.warnTimer); bg.warnTimer = null; }
   }
   function bgPause() {
     if (bg.mode !== 'play' || bg.paused) return;
-    bg.paused = true; bgStopClock(); bgRefresh();
+    bg.paused = true; bgStopClock(); bgWarnSync(); bgCloseCalc(true); bgRefresh();
   }
   function bgResume() {
     if (bg.mode !== 'play' || !bg.paused) return;
-    bg.paused = false; bgStartClock(); bgRefresh(); bgFocusFirst();
+    bg.paused = false; bg.ending = false; bgStartClock(); bgWarnSync(); bgRefresh(); bgFocusFirst();
   }
   document.addEventListener('visibilitychange', function () { if (document.hidden) bgPause(); });
 
+  /* ---- game flow ---- */
   function bgAddRow() {
     if (bg.rows.length >= BG_MAX) { bgGameOver(); return; }
     bg.rows.push(bgPick());
+    bgWarnSync();
   }
   function bgGameOver() {
     if (bg.mode !== 'play') return;
-    bgStopClock(); bg.mode = 'over'; bg.paused = false;
+    bgStopClock(); bg.mode = 'over'; bg.paused = false; bg.ending = false; bgWarnSync(); bgCloseCalc(true);
     var entry = { score: bg.score, level: bg.stage + 1 }, list = bg.scores.slice(), idx = -1;
     for (var i = 0; i < list.length; i++) if (list[i].score <= entry.score) { idx = i; break; }
     if (idx >= 0) { list.splice(idx, 0, entry); if (list.length > BG_TOP) list.pop(); }
     else if (list.length < BG_TOP) { list.push(entry); idx = list.length - 1; }
     bg.scores = list; bg.rank = idx;
     try { localStorage.setItem(BG_SCORES_KEY, JSON.stringify(list)); } catch (e) { /* no storage */ }
+    bgSound('game_over');
     bgRefresh();
   }
+  function bgReset() {
+    bgStopClock(); bgCloseCalc(true);
+    bg.score = 0; bg.stage = 0; bg.lines = 0; bg.rows = []; bg.elapsed = 0; bg.paused = false; bg.ending = false; bg.toast = ''; bg.rank = -1; bg.wipe = true; bg.modal = '';
+  }
   function bgStart(withIntro) {
-    bgStopClock();
-    bg.score = 0; bg.stage = 0; bg.lines = 0; bg.rows = []; bg.elapsed = 0; bg.paused = false; bg.toast = ''; bg.rank = -1; bg.wipe = true;
+    bgReset();
     if (withIntro) { bg.mode = 'intro'; bgIntroStep('binary'); }
     else { bg.mode = 'play'; bgBeginStage(); }
     bgRefresh(); bgFocusFirst();
+  }
+  function bgQuit() {  /* End Game, confirmed: back to the start screen, like the original */
+    bgReset(); bg.mode = 'idle'; bgWarnSync(); bgRefresh();
   }
   function bgIntroStep(step) {
     bg.intro = step; bg.rows = []; bg.wipe = true;
@@ -450,6 +512,7 @@
   function bgFinishIntro() {
     bg.introDone = true;
     try { localStorage.setItem(BG_INTRO_KEY, '1'); } catch (e) { /* no storage */ }
+    bgCloseCalc(true);
     bg.mode = 'play'; bgBeginStage(); bgRefresh(); bgFocusFirst();
   }
   function bgBeginStage() {
@@ -457,19 +520,23 @@
     bgAddRow(); bgAddRow(); bgAddRow();
     bgStartClock();
   }
-  function bgNextLevel() { bg.stage++; bg.lines = 0; bg.mode = 'play'; bgBeginStage(); bgRefresh(); bgFocusFirst(); }
+  function bgNextLevel() { bgSound('click_button'); bg.stage++; bg.lines = 0; bg.mode = 'play'; bgBeginStage(); bgRefresh(); bgFocusFirst(); }
   function bgToast(t) {
     bg.toast = t; clearTimeout(bg.toastTimer);
     bg.toastTimer = setTimeout(function () { bg.toast = ''; bgRefresh(); }, 2000);
   }
   function bgSolve(row) {
     bg.rows = bg.rows.filter(function (r) { return r !== row; });
+    bgWarnSync();
     if (bg.mode === 'play') {
       bg.lines++; bg.score += 100 + bg.stage * 25;
-      if (!bg.rows.length) { bg.score += 250; bgToast('Board clear! +250'); }
-      if (bg.lines >= bgLinesNeeded(bg.stage)) { bgStopClock(); bg.mode = 'levelup'; bg.paused = false; }
-    } else if (bg.mode === 'intro' && !bg.rows.length) {
-      if (bg.intro === 'binary') bgIntroStep('decimal');
+      if (!bg.rows.length) { bg.score += 250; bgSound('board_clear'); bgToast('Board Clear!'); }
+      else bgSound('problem_complete');
+      if (bg.lines >= bgLinesNeeded(bg.stage)) { bgStopClock(); bg.mode = 'levelup'; bg.paused = false; bgCloseCalc(true); }
+    } else if (bg.mode === 'intro') {
+      bgSound('problem_complete');
+      if (bg.rows.length) { /* one more to go */ }
+      else if (bg.intro === 'binary') bgIntroStep('decimal');
       else { bgFinishIntro(); return; }
     }
     bgRefresh();
@@ -477,46 +544,86 @@
   }
   function bgFocusFirst() {
     var el = main.querySelector('.bgame'); if (!el) return;
-    var t = el.querySelector('.bg-rows .bg-row:not(.out) button.bg-bit, .bg-rows .bg-row:not(.out) .bg-dec-in');
+    var t = el.querySelector('.bg-rows .bg-row:not(.out) button.bg-bit, .bg-rows .bg-row:not(.out) button.bg-digits');
     if (t) t.focus({ preventScroll: true });
   }
 
-  function bgameHtml() {
-    var guide = '';
-    for (var i = 7; i >= 0; i--) guide += '<span class="bg-bit">' + (1 << i) + '</span>';
-    return '<div class="bgame" role="region" aria-label="The binary game">' +
-      '<div class="bg-hud">' +
-      '<div class="bg-stat"><span class="k">Score</span><b class="bg-score">0</b></div>' +
-      '<div class="bg-stat"><span class="k">Level</span><b class="bg-level">1</b></div>' +
-      '<div class="bg-stat"><span class="k">Rows</span><b class="bg-lines">0 / 15</b></div>' +
-      '<div class="bg-stat"><span class="k">Best</span><b class="bg-best">&ndash;</b></div>' +
-      '<div class="bg-ctl"><button type="button" class="btn ghost bg-pause" hidden>Pause</button><button type="button" class="btn ghost bg-end" hidden>End game</button></div></div>' +
-      '<div class="bg-clock" aria-hidden="true"><i class="bg-clock-fill"></i></div>' +
-      '<div class="bg-note" hidden></div>' +
-      '<div class="bg-board">' +
-      '<div class="bg-row guide" aria-hidden="true"><div class="bg-bits">' + guide + '</div><span class="bg-eq">=</span><span class="bg-dec">0</span></div>' +
-      '<div class="bg-rows"></div>' +
-      '<div class="bg-toast" aria-live="polite"></div>' +
-      '<div class="bg-panel"></div></div>' +
-      '<p class="hint bg-credit">Modelled on the <a href="https://learningcontent.cisco.com/games/binary/index.html" target="_blank" rel="noopener">Binary Game</a> from the Cisco Learning Network.</p></div>';
+  /* ---- the number pad on a decimal row ---- */
+  function bgOpenCalc(id) {
+    if (bg.calcId === id) return;
+    bg.calcId = id; bg.calcVal = '';
+    bgSound('calculator_open'); bgRefresh();
   }
+  function bgCloseCalc(silent) {
+    if (bg.calcId === null) return;
+    bg.calcId = null; bg.calcVal = '';
+    if (!silent) bgSound('calculator_close');
+  }
+  function bgCalcKey(k) {
+    var row = bgRow(bg.calcId); if (!row) return;
+    if (k === 'del') { bg.calcVal = bg.calcVal.slice(0, -1); bgSound('bit_off'); bgRefresh(); return; }
+    if (k === 'ok') {
+      var v = bg.calcVal;
+      bgCloseCalc(true);
+      if (v !== '' && +v === row.answer) { bgSolve(row); return; }
+      row.guess = v === '' ? -1 : +v;   /* the wrong number stays in the box, as in the original */
+      bgRefresh();
+      var node = main.querySelector('.bg-row[data-id="' + row.id + '"]');
+      if (node) { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); }
+      return;
+    }
+    if (bg.calcVal.length < 3) { bg.calcVal += k; bgSound('bit_on'); bgRefresh(); }
+  }
+  document.addEventListener('keydown', function (e) {
+    if (bg.calcId === null || !main.querySelector('.bgame')) return;
+    if (/^[0-9]$/.test(e.key)) { bgCalcKey(e.key); e.preventDefault(); }
+    else if (e.key === 'Backspace') { bgCalcKey('del'); e.preventDefault(); }
+    else if (e.key === 'Enter') { bgCalcKey('ok'); e.preventDefault(); }
+    else if (e.key === 'Escape') { bgCloseCalc(); bgRefresh(); }
+  });
 
+  /* ---- markup ---- */
+  function bgGuideHtml() {
+    var h = '<div class="bg-guide" aria-hidden="true"><div class="bg-guide-nums">';
+    for (var i = 7; i >= 0; i--) h += '<span>' + (1 << i) + '</span>';
+    return h + '</div></div>';
+  }
+  function bgameHtml() {
+    return '<div class="bgame" role="region" aria-label="The binary game">' +
+      '<div class="bg-window">' +
+      '<div class="bg-board">' + bgGuideHtml() +
+      '<div class="bg-problems"><div class="bg-cols" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>' +
+      '<div class="bg-rows"></div><div class="bg-help" hidden></div><div class="bg-toast" aria-live="polite"></div></div>' +
+      bgGuideHtml() + '</div>' +
+      '<div class="bg-menu"><div class="bg-stats">' +
+      '<div class="bg-item"><span class="label">Score</span><span class="value bg-score">0</span></div>' +
+      '<div class="bg-item"><span class="label">Level</span><span class="value bg-level">1</span></div>' +
+      '<div class="bg-item"><span class="label">Lines left</span><span class="value bg-left">15</span></div></div>' +
+      '<div class="bg-buttons"><button type="button" class="bg-btn bg-pause">Pause</button>' +
+      '<button type="button" class="bg-btn bg-sound" aria-pressed="false">Sound off</button>' +
+      '<button type="button" class="bg-btn bg-end">End game</button></div></div>' +
+      '<div class="bg-modal-wrap"><div class="bg-modal" role="dialog" aria-live="polite"></div></div>' +
+      '</div>' +
+      '<p class="hint bg-credit">A clone of the <a href="https://learningcontent.cisco.com/games/binary/index.html" target="_blank" rel="noopener">Binary Game</a> from the Cisco Learning Network: same rules, levels and scoring.</p></div>';
+  }
   function bgRowHtml(row) {
     var v = row.dec ? row.answer : row.guess, h = [];
     h.push('<div class="bg-row' + (row.dec ? ' dec' : '') + '" data-id="' + row.id + '" role="group" aria-label="' +
-      (row.dec ? 'Decimal row: what is ' + bgBits(row.answer) + ' in decimal?' : 'Binary row: set the bits to make ' + row.answer) + '"><div class="bg-bits">');
+      (row.dec ? 'Decimal puzzle: what is ' + bgBits(row.answer) + ' in decimal?' : 'Binary puzzle: set the bits to make ' + row.answer) + '"><div class="bg-bits">');
     for (var i = 0; i < 8; i++) {
       var on = (v >> (7 - i)) & 1, w = 1 << (7 - i);
-      h.push(row.dec ? '<span class="bg-bit' + (on ? ' on' : '') + '" title="worth ' + w + '">' + on + '</span>'
+      h.push(row.dec ? '<span class="bg-bit fixed' + (on ? ' on' : '') + '" title="worth ' + w + '">' + on + '</span>'
         : '<button type="button" class="bg-bit' + (on ? ' on' : '') + '" data-i="' + i + '" title="worth ' + w + '" aria-label="bit worth ' + w + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + on + '</button>');
     }
     h.push('</div><span class="bg-eq">=</span>');
-    h.push(row.dec ? '<form class="bg-dec-form"><input class="bg-dec-in" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="?" aria-label="Type the decimal value" autocomplete="off"><button type="submit" class="bg-go" aria-label="Check">&#10003;</button></form>'
-      : '<span class="bg-dec">' + row.answer + '</span>');
+    if (row.dec) {
+      h.push('<button type="button" class="bg-digits isProblem" aria-label="Decimal value: press to open the number pad">?</button>' +
+        '<div class="bg-calc" hidden>' + ['7', '8', '9', '4', '5', '6', '1', '2', '3'].map(function (k) { return '<button type="button" data-k="' + k + '">' + k + '</button>'; }).join('') +
+        '<button type="button" data-k="del" aria-label="Delete">&#9003;</button><button type="button" data-k="0">0</button><button type="button" data-k="ok" aria-label="Enter">&#10003;</button></div>');
+    } else h.push('<span class="bg-digits">' + row.answer + '</span>');
     h.push('</div>');
     return h.join('');
   }
-
   function bgSyncBits(node, guess) {
     Array.prototype.forEach.call(node.querySelectorAll('button.bg-bit'), function (b) {
       var on = (guess >> (7 - +b.dataset.i)) & 1;
@@ -525,114 +632,147 @@
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
   }
-
+  function bgSyncRowState(node, row, index) {
+    var open = bg.calcId === row.id;
+    node.classList.toggle('dim', bg.calcId !== null && !open);
+    node.classList.toggle('flipped', index > 3);
+    if (!row.dec) { bgSyncBits(node, row.guess); return; }
+    var dg = node.querySelector('.bg-digits'), calc = node.querySelector('.bg-calc');
+    dg.classList.toggle('calculating', open);
+    dg.classList.toggle('isProblem', !open);
+    dg.textContent = open ? bg.calcVal : (row.guess >= 0 ? row.guess : '?');
+    calc.hidden = !open;
+  }
   function bgSyncRows(el) {
     var wrap = el.querySelector('.bg-rows'), have = {}, want = {};
     if (bg.wipe) { wrap.innerHTML = ''; bg.wipe = false; }
     bg.rows.forEach(function (r) { want[r.id] = r; });
     Array.prototype.forEach.call(wrap.querySelectorAll('.bg-row'), function (node) {
       var id = +node.dataset.id; have[id] = true;
-      if (!want[id]) {
-        if (!node.classList.contains('out')) {
-          node.classList.add('out');
-          setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 260);
-        }
-      } else if (!want[id].dec) bgSyncBits(node, want[id].guess);
+      if (!want[id] && !node.classList.contains('out')) {
+        node.classList.add('out');
+        setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 400);
+      }
     });
     bg.rows.forEach(function (r) { if (!have[r.id]) wrap.insertAdjacentHTML('beforeend', bgRowHtml(r)); });
-    el.classList.toggle('danger', bg.mode === 'play' && bg.rows.length >= BG_MAX);
+    bg.rows.forEach(function (r, i) { var node = wrap.querySelector('.bg-row[data-id="' + r.id + '"]'); if (node) bgSyncRowState(node, r, i); });
+    wrap.classList.toggle('paused', bg.mode === 'play' && bg.paused);
+    el.querySelector('.bg-problems').classList.toggle('danger', bg.mode === 'play' && !bg.paused && bg.rows.length >= BG_MAX);
     var toast = el.querySelector('.bg-toast');
     toast.textContent = bg.toast;
     toast.classList.toggle('show', !!bg.toast);
   }
-
   function bgSyncHud(el) {
     var playing = bg.mode === 'play';
     el.querySelector('.bg-score').textContent = fmtN(bg.score);
     el.querySelector('.bg-level').textContent = bg.stage + 1;
-    el.querySelector('.bg-lines').textContent = bg.mode === 'intro' ? 'warm-up' : bg.lines + ' / ' + bgLinesNeeded(bg.stage);
-    el.querySelector('.bg-best').innerHTML = bg.scores.length ? fmtN(bg.scores[0].score) : '&ndash;';
-    var pause = el.querySelector('.bg-pause'), end = el.querySelector('.bg-end');
-    pause.hidden = !playing; end.hidden = !playing;
-    pause.textContent = bg.paused ? 'Resume' : 'Pause';
-    var fill = el.querySelector('.bg-clock-fill');
-    fill.style.width = playing ? Math.min(100, bg.elapsed / bgDelay(bg.stage) * 100).toFixed(1) + '%' : '0%';
-    el.querySelector('.bg-row.guide').hidden = (playing || bg.mode === 'levelup') && bg.stage > BG_GUIDE_STAGE;
+    el.querySelector('.bg-left').textContent = bg.mode === 'intro' ? '–' : Math.max(0, bgLinesNeeded(bg.stage) - bg.lines);
+    var pause = el.querySelector('.bg-pause'), end = el.querySelector('.bg-end'), snd = el.querySelector('.bg-sound');
+    pause.disabled = !playing || bg.paused;
+    end.disabled = !(playing || bg.mode === 'intro');
+    snd.textContent = bg.muted ? 'Sound on' : 'Sound off';
+    snd.setAttribute('aria-pressed', bg.muted ? 'true' : 'false');
+    var off = (playing || bg.mode === 'levelup') && bg.stage > BG_GUIDE_STAGE;
+    Array.prototype.forEach.call(el.querySelectorAll('.bg-guide'), function (g) { g.classList.toggle('off', off); });
   }
-
-  function bgPanelHtml() {
-    var h = '';
+  function bgExample(row) { return '<div class="bg-example" aria-hidden="true">' + bgRowHtml(row) + '</div>'; }
+  function bgModalHtml() {
+    var t = '', b = '';
     if (bg.mode === 'idle') {
-      h = '<h3>Ready?</h3><p>' + lv({
-        s: 'Rows of eight switches pile up. Flip the switches so they add up to the number on the right, or type the number the switches make. Clear rows faster than they arrive.',
-        m: 'Rows arrive on a clock. Toggle the bits to match the number on the right, or type the value of the bits shown. Seven rows on the board and the next one ends the game.',
-        e: 'Binary rows: toggle bits to hit the target value; the starting pattern is a decoy. Decimal rows: type the value and press Enter. Rows arrive every 12.4 s at level 1, faster each level; the eighth unsolved row ends the game.'
-      }) + '</p><div class="bg-actions"><button type="button" class="btn bg-play">Play</button><button type="button" class="btn ghost bg-howto">Warm-up rows</button></div>' +
-        (bg.scores.length ? '<p class="bg-bestline">Best so far: <b>' + fmtN(bg.scores[0].score) + '</b> (level ' + bg.scores[0].level + ')</p>' : '');
+      if (bg.modal === 'help') {
+        t = 'Instructions';
+        b = '<h2>Welcome to the Binary Game</h2><p>Use your binary math skills to quickly solve as many puzzles as you can!</p><p>Puzzles come in two flavors:</p>' +
+          '<button type="button" class="bg-link bg-help-bin">Binary Puzzles</button><button type="button" class="bg-link bg-help-dec">Decimal Puzzles</button>' +
+          '<button type="button" class="bg-btn bg-help-back">Back to Menu</button>';
+      } else if (bg.modal === 'help-binary') {
+        t = 'Instructions';
+        b = '<h2>Binary Puzzles</h2><p>This is what a binary puzzle looks like</p>' + bgExample({ id: 'x1', answer: 37, guess: 12, dec: false }) +
+          '<p>To solve binary puzzles, toggle the bits on the left to equal the number on the right.</p><button type="button" class="bg-btn bg-help-menu">Back</button>';
+      } else if (bg.modal === 'help-decimal') {
+        t = 'Instructions';
+        b = '<h2>Decimal Puzzles</h2><p>This is what a decimal puzzle looks like</p>' + bgExample({ id: 'x2', answer: 37, guess: -1, dec: true }) +
+          '<p>To solve decimal puzzles, click the question mark and use the number pad to input the decimal number that equals the binary number on the left.</p><button type="button" class="bg-btn bg-help-menu">Back</button>';
+      } else {
+        t = 'Binary Game';
+        b = '<button type="button" class="bg-btn bg-play">Play Game</button><button type="button" class="bg-btn bg-howto">Instructions</button>' +
+          (bg.scores.length ? '<p class="center bg-best">Best so far: ' + fmtN(bg.scores[0].score) + ' (level ' + bg.scores[0].level + ')</p>' : '');
+      }
     } else if (bg.mode === 'play' && bg.paused) {
-      h = '<h3>Paused</h3><p>The clock is stopped.</p><div class="bg-actions"><button type="button" class="btn bg-pause">Resume</button><button type="button" class="btn ghost bg-end">End game</button></div>';
+      if (bg.ending) { t = 'End Game'; b = '<p class="center">Are you sure you want to end the game?</p><button type="button" class="bg-btn inline bg-end-yes">Yes</button><button type="button" class="bg-btn inline bg-end-no">No</button>'; }
+      else { t = 'Paused'; b = '<button type="button" class="bg-btn bg-resume">Resume</button>'; }
     } else if (bg.mode === 'levelup') {
-      var next = bg.stage + 1;
-      h = '<h3>Level ' + (bg.stage + 1) + ' complete</h3><p>Score <b>' + fmtN(bg.score) + '</b>. Level ' + (next + 1) + ' needs ' + bgLinesNeeded(next) + ' rows and a new one arrives every ' + (bgDelay(next) / 1000).toFixed(1).replace(/\.0$/, '') + ' seconds.</p>' +
-        (bg.stage === BG_GUIDE_STAGE ? '<p class="bg-warn">From here the place values above the board are hidden. Keep 128, 64, 32, 16, 8, 4, 2, 1 in your head.</p>' : '') +
-        '<div class="bg-actions"><button type="button" class="btn bg-next">Next level</button></div>';
+      t = 'Level ' + (bg.stage + 1) + ' Complete!';
+      b = (bg.stage === BG_GUIDE_STAGE ? '<h2 class="bg-warn">Warning</h2><p class="center">Guide numbers are deactivated from now on</p>' : '') +
+        '<button type="button" class="bg-btn bg-next">Next Level</button>';
     } else if (bg.mode === 'over') {
+      t = 'Game Over';
       var rows = bg.scores.map(function (s, i) {
-        return '<tr' + (i === bg.rank ? ' class="me"' : '') + '><td>' + (i + 1) + '</td><td>' + fmtN(s.score) + '</td><td>' + s.level + '</td></tr>';
+        return '<tr' + (i === bg.rank ? ' class="me"' : '') + '><td>' + (i + 1) + '.</td><td>' + fmtN(s.score) + '</td><td>' + s.level + '</td></tr>';
       }).join('');
-      h = '<h3>Game over</h3><div class="bg-final"><div><span class="k">Score</span><b>' + fmtN(bg.score) + '</b></div><div><span class="k">Level</span><b>' + (bg.stage + 1) + '</b></div></div>' +
-        (rows ? '<table class="lab bg-scores"><thead><tr><th>Rank</th><th>Score</th><th>Level</th></tr></thead><tbody>' + rows + '</tbody></table>' : '') +
-        '<div class="bg-actions"><button type="button" class="btn bg-play">Play again</button></div>';
+      b = '<div class="bg-final"><div><span>Score</span><b>' + fmtN(bg.score) + '</b></div><div><span>Level</span><b>' + (bg.stage + 1) + '</b></div></div>' +
+        (rows ? '<table class="bg-scores"><thead><tr><td>Rank</td><td>Score</td><td>Level</td></tr></thead><tbody>' + rows + '</tbody></table>' : '') +
+        '<button type="button" class="bg-btn bg-play">Play Again</button>';
     }
-    return h;
+    return t ? '<h1>' + t + '</h1><div class="bg-modal-body">' + b + '</div>' : '';
   }
-
-  function bgSyncPanel(el) {
-    var panel = el.querySelector('.bg-panel'), h = bgPanelHtml();
-    if (el._bgPanel !== h) { panel.innerHTML = h; el._bgPanel = h; }
-    panel.hidden = !h;
-    var note = el.querySelector('.bg-note'), n = '';
+  function bgSyncModal(el) {
+    var wrap = el.querySelector('.bg-modal-wrap'), h = bgModalHtml();
+    if (el._bgModal !== h) { wrap.querySelector('.bg-modal').innerHTML = h; el._bgModal = h; }
+    wrap.hidden = !h;
+    var help = el.querySelector('.bg-help'), n = '';
     if (bg.mode === 'intro') {
-      n = '<div class="banner ok"><b>Warm-up, no clock, no score.</b> ' + (bg.intro === 'binary'
-        ? lv({ s: 'Click the switches so they add up to the number on the right. Use the values above the board.', m: 'Toggle the bits until they add up to the number on the right. The place values are above the board.', e: 'Toggle the bits to match the target; the starting pattern is a decoy.' })
-        : lv({ s: 'Now the switches are fixed. Add up the ones that are on, type the total and press Enter.', m: 'Now the bits are fixed: add up the place values of the 1s, type the total and press Enter or the tick.', e: 'Decimal rows: type the value of the fixed bits and press Enter.' })) +
-        ' <button type="button" class="btn ghost bg-skip">Skip warm-up</button></div>';
+      n = '<b>Warm-up: no clock, no score.</b> ' + (bg.intro === 'binary'
+        ? lv({ s: 'Click the switches so they add up to the number on the right. The values are on the blue bar above.', m: 'Toggle the bits until they add up to the number on the right. The place values are on the blue bar above.', e: 'Toggle the bits to match the target; the starting pattern is a decoy.' })
+        : lv({ s: 'Now the switches are fixed. Add up the ones that are on, click the ? and type the total.', m: 'Now the bits are fixed: add up the place values of the 1s, click the ? and type the total on the number pad.', e: 'Decimal rows: click the ?, type the value of the fixed bits, press Enter.' })) +
+        ' <button type="button" class="bg-btn bg-skip">Skip warm-up</button>';
     }
-    if (el._bgNote !== n) { note.innerHTML = n; el._bgNote = n; }
-    note.hidden = !n;
+    if (el._bgHelp !== n) { help.innerHTML = n; el._bgHelp = n; }
+    help.hidden = !n;
   }
-
   function bgRefresh(el) {
     el = el || main.querySelector('.bgame');
     if (!el) return;
-    bgSyncRows(el); bgSyncHud(el); bgSyncPanel(el);
+    bgSyncRows(el); bgSyncHud(el); bgSyncModal(el);
   }
 
   function wireGame(el) {
     el.addEventListener('click', function (e) {
-      var t = e.target.closest('button'); if (!t) return;
-      if (t.classList.contains('bg-bit')) {
-        if (bg.paused || (bg.mode !== 'play' && bg.mode !== 'intro')) return;
+      var t = e.target.closest('button'); if (!t || t.disabled) return;
+      var inRows = !!t.closest('.bg-rows'), live = (bg.mode === 'play' || bg.mode === 'intro') && !bg.paused;
+      if (inRows && t.classList.contains('bg-bit')) {
+        if (!live) return;
         var node = t.closest('.bg-row'), row = bgRow(+node.dataset.id);
-        if (!row || row.dec) return;
-        row.guess ^= 1 << (7 - +t.dataset.i);
+        if (!row || row.dec || (bg.calcId !== null && bg.calcId !== row.id)) return;
+        var bit = 1 << (7 - +t.dataset.i), on = !(row.guess & bit);
+        row.guess ^= bit;
+        bgSound(on ? 'bit_on' : 'bit_off');
         if (row.guess === row.answer) bgSolve(row); else bgSyncBits(node, row.guess);
       }
-      else if (t.classList.contains('bg-play')) bgStart(!bg.introDone);
-      else if (t.classList.contains('bg-howto')) bgStart(true);
-      else if (t.classList.contains('bg-skip')) bgFinishIntro();
-      else if (t.classList.contains('bg-pause')) { if (bg.paused) bgResume(); else bgPause(); }
-      else if (t.classList.contains('bg-end')) bgGameOver();
+      else if (inRows && t.classList.contains('bg-digits')) {
+        if (!live) return;
+        var r2 = bgRow(+t.closest('.bg-row').dataset.id);
+        if (r2 && r2.dec && bg.calcId === null) bgOpenCalc(r2.id);
+        else if (r2 && bg.calcId === r2.id) { bgCloseCalc(); bgRefresh(); }
+      }
+      else if (inRows && t.dataset.k) { if (live) bgCalcKey(t.dataset.k); }
+      else if (t.classList.contains('bg-play')) { bgSound('click_button'); bgStart(!bg.introDone); }
+      else if (t.classList.contains('bg-howto')) { bgSound('click_button'); bg.modal = 'help'; bgRefresh(); }
+      else if (t.classList.contains('bg-help-bin')) { bgSound('click_button'); bg.modal = 'help-binary'; bgRefresh(); }
+      else if (t.classList.contains('bg-help-dec')) { bgSound('click_button'); bg.modal = 'help-decimal'; bgRefresh(); }
+      else if (t.classList.contains('bg-help-menu')) { bgSound('click_button'); bg.modal = 'help'; bgRefresh(); }
+      else if (t.classList.contains('bg-help-back')) { bgSound('click_button'); bg.modal = ''; bgRefresh(); }
+      else if (t.classList.contains('bg-skip')) { bgSound('click_button'); bgFinishIntro(); }
+      else if (t.classList.contains('bg-pause')) { bgSound('click_button'); bgPause(); }
+      else if (t.classList.contains('bg-resume')) { bgSound('click_button'); bgResume(); }
+      else if (t.classList.contains('bg-sound')) { bgToggleSound(); bgRefresh(); }
+      else if (t.classList.contains('bg-end')) {
+        bgSound('click_button');
+        if (bg.mode === 'intro') { bgQuit(); return; }
+        bg.ending = true; if (bg.paused) bgRefresh(); else bgPause();
+      }
+      else if (t.classList.contains('bg-end-yes')) { bgSound('click_button'); bgQuit(); }
+      else if (t.classList.contains('bg-end-no')) { bgSound('click_button'); bgResume(); }
       else if (t.classList.contains('bg-next')) bgNextLevel();
-    });
-    el.addEventListener('submit', function (e) {
-      var f = e.target.closest('.bg-dec-form'); if (!f) return;
-      e.preventDefault();
-      var node = f.closest('.bg-row'), row = bgRow(+node.dataset.id), inp = f.querySelector('.bg-dec-in');
-      if (!row || bg.paused) return;
-      var v = inp.value.trim();
-      if (v !== '' && /^\d+$/.test(v) && +v === row.answer) bgSolve(row);
-      else { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); inp.select(); }
     });
     bgRefresh(el);
     if (bg.mode === 'play' && !bg.paused && !bg.timer) bgStartClock();
@@ -913,6 +1053,7 @@
       '<h2>How to use this page</h2>' +
       '<ol>' +
       '<li><b>Bits and octets.</b> Why 192.168.1.10 is really 32 ones and zeros, and the powers of two that everything else depends on.</li>' +
+      '<li><b>The binary game.</b> A clone of Cisco\'s Binary Game: octets to bits and back against the clock, with the original\'s levels, scoring and sounds.</li>' +
       '<li><b>Mask and CIDR.</b> The line through the address: <code>255.255.255.0</code> and <code>/24</code> are the same thing, and why "usable" is two less.</li>' +
       '<li><b>The CIDR slider.</b> Drag from /16 to /32 and watch the block halve and double: /23 = 512, /24 = 256, /25 = 128.</li>' +
       '<li><b>Splitting a network.</b> One /24 into two /25s, four /26s or sixty-four /30s, with every resulting range listed.</li>' +

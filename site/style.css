@@ -719,86 +719,105 @@ table.lab tr:hover td { background: rgba(47,111,237,.09); }
   .app.nav-collapsed .side > .side-strip span { writing-mode: horizontal-tb; transform: none; }
 }
 
-/* ---------- the binary game (Bits and octets) ---------- */
-.bgame { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 10px; margin: 10px 0 16px; max-width: 600px; }
-.bg-hud { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 22px; margin-bottom: 8px; }
-.bg-stat .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.bg-stat b { font-family: var(--mono); font-size: 20px; line-height: 1.1; }
-.bg-ctl { margin-left: auto; display: flex; gap: 6px; align-self: center; }
-.bg-ctl .btn { font-size: 12.5px; padding: 4px 10px; }
-.bg-clock { height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; margin: 0 0 10px; }
-.bg-clock-fill { display: block; height: 100%; width: 0; background: var(--accent); transition: width .1s linear; }
-.bgame.danger .bg-clock-fill { background: #d93b3b; }
-.bgame.danger .bg-board { border-color: #e06b6b; background: #fff3f3; }
-.bg-note { margin: 0 0 10px; }
-.bg-note .banner { margin: 0; font-size: 14px; }
-.bg-note .btn { font-size: 12.5px; padding: 3px 10px; margin-left: 4px; vertical-align: middle; }
-.bg-board { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 12px; transition: background .3s, border-color .3s; }
-.bg-rows { display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 6px; min-height: calc(7 * 40px + 6 * 6px); }
-.bg-row { display: flex; align-items: center; gap: 10px; transition: opacity .25s, transform .25s; }
-.bg-row.out { opacity: 0; transform: translateX(28px); pointer-events: none; }
-.bg-bits { display: flex; gap: 4px; }
-.bg-bit { width: 34px; height: 40px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 17px; border: 2px solid #c4ccd8; border-radius: 6px; background: #f2f4f7; color: var(--muted); padding: 0; cursor: default; }
+/* ---------- the binary game: the original's palette (teal window, amber bits, green stats, sky-blue guide) ---------- */
+.bgame { --bg-teal: #005073; --bg-deep: #06354a; --bg-sky: #00bceb; --bg-green: #6ebe4a; --bg-amber: #fbab18;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 15px; margin: 10px 0 16px; max-width: 660px; user-select: none; }
+[data-theme="dark"] .bgame { background: var(--panel); }
+.bg-window { position: relative; display: flex; gap: 15px; }
+.bg-board { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; border-radius: 4px; background: var(--bg-teal); overflow: hidden; }
+.bg-guide { display: flex; background: var(--bg-sky); color: #fff; height: 38px; }
+.bg-guide-nums { display: flex; width: 80%; }
+.bg-guide-nums span { width: 12.5%; text-align: center; line-height: 38px; border-right: 2px solid #fff; box-sizing: border-box; font-weight: 700; font-size: 15px; transition: color .3s; }
+.bg-guide.off span { color: transparent; }
+.bg-problems { position: relative; flex: 1 1 auto; background: var(--bg-teal); padding: 6px 0; }
+.bg-problems.danger { animation: bg-danger 1.5s infinite; }
+@keyframes bg-danger { 0% { background-color: #005073; } 50% { background-color: #5a3e4f; } 100% { background-color: #005073; } }
+.bg-cols { position: absolute; top: 0; bottom: 0; left: 0; width: 80%; display: flex; pointer-events: none; }
+.bg-cols i { width: 12.5%; border-right: 2px solid rgba(255,255,255,.1); box-sizing: border-box; }
+.bg-rows { position: relative; display: flex; flex-direction: column-reverse; justify-content: flex-start; min-height: calc(7 * 48px); transition: opacity .5s; }
+.bg-rows.paused { opacity: 0; }
+.bg-row { position: relative; display: flex; align-items: center; height: 48px; padding: 5px 0; box-sizing: border-box; transition: opacity .4s, transform .4s; }
+.bg-row.out { opacity: 0; transform: translateX(30px); pointer-events: none; }
+.bg-row.dim { opacity: .4; pointer-events: none; }
+.bg-bits { display: flex; justify-content: space-around; width: 80%; height: 100%; }
+.bg-bit { width: calc(12.5% - 10px); height: 100%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--sans); font-weight: 700; font-size: 22px; line-height: 1; background: transparent; border: 2px solid var(--bg-amber); border-radius: 4px; color: var(--bg-amber); padding: 0; cursor: default; transition: background-color .4s, color .4s; }
 button.bg-bit { cursor: pointer; }
-button.bg-bit:hover { border-color: var(--accent); }
-button.bg-bit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.bg-bit.on { background: #e9f2ff; border-color: #8fb4ee; color: #1d3f7a; }
-.bg-eq { font-family: var(--mono); font-size: 18px; color: var(--muted); }
-.bg-dec { min-width: 64px; height: 40px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 20px; background: var(--accent); color: #fff; border-radius: 8px; padding: 0 10px; }
-.bg-dec-form { display: flex; gap: 4px; }
-.bg-dec-in { width: 64px; height: 40px; font-family: var(--mono); font-weight: 700; font-size: 20px; text-align: center; border: 2px solid var(--accent); border-radius: 8px; background: var(--panel); color: var(--ink); }
-.bg-dec-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.bg-go { width: 34px; height: 40px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 18px; cursor: pointer; padding: 0; }
-.bg-go:hover { background: #245bd0; }
+button.bg-bit:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.bg-bit.on { background: var(--bg-amber); color: var(--bg-deep); }
+.bg-bit.fixed { color: var(--bg-green); border-color: var(--bg-green); }
+.bg-bit.fixed.on { background: var(--bg-green); color: var(--bg-deep); }
+.bg-eq { padding: 0 8px; font-size: 28px; line-height: 1; color: var(--bg-sky); font-weight: 700; }
+.bg-digits { flex: 1 1 auto; min-width: 0; height: 100%; margin-right: 5px; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; box-sizing: border-box; border: 2px solid transparent; border-radius: 4px; background: #fff; color: var(--bg-teal); font-family: var(--sans); font-weight: 700; font-size: 26px; line-height: 1; }
+button.bg-digits { cursor: pointer; }
+button.bg-digits:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.bg-digits.isProblem { background: var(--bg-amber); color: var(--bg-teal); transition: background-color .2s, color .2s; }
+.bg-digits.calculating { background: #fff; color: var(--bg-amber); min-height: 100%; }
+.bg-calc { position: absolute; right: 5px; bottom: calc(100% - 5px); z-index: 15; width: 150px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; box-sizing: border-box; background: #fff; border-radius: 4px 4px 0 4px; box-shadow: 0 0 10px rgba(0,0,0,.2); }
+.bg-calc[hidden] { display: none; }
+.bg-row.flipped .bg-calc { bottom: auto; top: calc(100% - 5px); border-radius: 4px 0 4px 4px; }
+.bg-calc button { font: inherit; font-weight: 700; font-size: 16px; background: var(--bg-amber); color: var(--bg-deep); border: 0; border-radius: 4px; height: 36px; cursor: pointer; }
+.bg-calc button:hover { filter: brightness(1.06); }
 .bg-row.shake { animation: bg-shake .3s; }
 @keyframes bg-shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-.bg-row.guide { margin-bottom: 4px; }
-.bg-row.guide .bg-bit { height: 18px; font-size: 11px; font-weight: 600; border-color: transparent; background: transparent; color: var(--muted); }
-.bg-row.guide .bg-eq, .bg-row.guide .bg-dec { visibility: hidden; height: 18px; }
-.bg-row.guide[hidden] { display: none; }
-.bg-panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 16px; background: rgba(244,246,250,.97); border-radius: 10px; overflow: auto; }
-.bg-panel[hidden] { display: none; }
-.bg-panel h3 { margin: 0 0 8px; font-size: 22px; }
-.bg-panel p { margin: 0 0 12px; max-width: 400px; font-size: 14.5px; }
-.bg-panel .bg-warn { color: #7a4a00; background: #fff4e0; border: 1px solid #f0c882; border-radius: 8px; padding: 6px 10px; font-size: 13.5px; }
-.bg-bestline { color: var(--muted); font-size: 13px !important; margin: 12px 0 0 !important; }
-.bg-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.bg-final { display: flex; gap: 28px; margin-bottom: 10px; }
-.bg-final .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.bg-final b { font-family: var(--mono); font-size: 26px; }
-table.lab.bg-scores { font-size: 13px; margin: 0 0 12px; width: auto; }
-table.lab.bg-scores th, table.lab.bg-scores td { padding: 4px 14px; }
-table.lab.bg-scores td:nth-child(2), table.lab.bg-scores td:nth-child(3) { font-size: 13px; }
-table.lab.bg-scores tr.me td { color: var(--accent); font-weight: 700; }
-.bg-toast { position: absolute; top: 42%; left: 0; right: 0; text-align: center; font-weight: 800; font-size: 24px; color: var(--accent); opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; pointer-events: none; text-shadow: 0 1px 0 #fff; }
+.bg-toast { position: absolute; top: 12px; left: 25%; width: 50%; padding: 8px 10px; box-sizing: border-box; text-align: center; text-transform: uppercase; font-weight: 700; font-size: 18px; color: #fff; background: var(--bg-green); border-radius: 4px; box-shadow: 0 0 10px 2px rgba(0,0,0,.05); z-index: 25; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; pointer-events: none; }
 .bg-toast.show { opacity: 1; transform: none; }
-.bg-credit { margin: 8px 0 0; font-size: 12.5px; }
-[data-theme="dark"] .bg-bit { background: #1c2437; border-color: #34405a; }
-[data-theme="dark"] .bg-bit.on { background: #16294a; border-color: #3f6fc0; color: #cfe0ff; }
-[data-theme="dark"] .bg-row.guide .bg-bit { background: transparent; border-color: transparent; }
-[data-theme="dark"] .bg-panel { background: rgba(15,20,32,.96); }
-[data-theme="dark"] .bg-panel .bg-warn { color: #f3dfae; background: #3a2a0c; border-color: #8a6420; }
-[data-theme="dark"] .bg-toast { text-shadow: none; }
-[data-theme="dark"] .bgame.danger .bg-board { background: #3a1515; border-color: #a04040; }
-@media (max-width: 860px) {
-  .bgame { padding: 12px 10px 8px; }
-  .bg-board { padding: 6px 8px 10px; }
-  .bg-bits { gap: 3px; }
-  .bg-bit { width: 30px; height: 36px; font-size: 15px; }
-  .bg-row { gap: 8px; }
-  .bg-dec, .bg-dec-in { min-width: 54px; width: 54px; height: 36px; font-size: 17px; }
-  .bg-go { width: 30px; height: 36px; }
-  .bg-rows { min-height: calc(7 * 36px + 6 * 6px); }
-  .bg-hud { gap: 6px 16px; }
-  .bg-stat b { font-size: 17px; }
+.bg-help { position: absolute; top: 8px; left: 10px; right: 10px; z-index: 20; background: var(--bg-green); color: #fff; border-radius: 4px; padding: 8px 12px; font-size: 14px; line-height: 1.4; }
+.bg-help .bg-btn { display: inline-block; width: auto; margin: 4px 0 0; padding: 1px 10px; font-size: 12px; }
+.bg-menu { flex: 0 0 168px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-teal); border-radius: 4px; color: #fff; }
+.bg-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-green); border-bottom: 2px solid #fff; padding: 8px 10px; line-height: 30px; }
+.bg-item:first-child { border-radius: 4px 4px 0 0; }
+.bg-item .label { text-transform: uppercase; font-size: 12.5px; font-weight: 700; }
+.bg-item .value { font-size: 20px; font-weight: 700; }
+.bg-buttons { padding: 10px; }
+.bg-btn { display: block; width: 100%; margin: 5px 0; font: inherit; font-weight: 700; font-size: 14px; text-transform: uppercase; background: var(--bg-amber); color: var(--bg-deep); border: 2px solid transparent; border-radius: 4px; padding: 4px 10px; line-height: 1.8em; cursor: pointer; }
+.bg-btn:hover { filter: brightness(1.06); }
+.bg-btn:disabled { opacity: .45; cursor: default; filter: none; }
+.bg-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.bg-modal-wrap { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.7); z-index: 50; border-radius: 4px; }
+.bg-modal-wrap[hidden] { display: none; }
+.bg-modal { max-width: 78%; max-height: 96%; overflow: auto; border-radius: 4px; box-shadow: 0 0 20px 2px rgba(0,0,0,.2); text-align: center; background: var(--bg-teal); color: #fff; }
+.bg-modal h1 { margin: 0; background: #fff; color: var(--bg-teal); text-transform: uppercase; font-size: 26px; line-height: 1; padding: 15px 20px 10px; border-radius: 4px 4px 0 0; }
+.bg-modal-body { padding: 20px; }
+.bg-modal-body h2 { color: #fff; text-transform: uppercase; margin: 0 0 6px; font-size: 16px; text-align: left; }
+.bg-modal-body p { margin: 5px 0 12px; text-align: left; font-size: 15px; }
+.bg-modal-body p.center { text-align: center; }
+.bg-modal-body p.bg-best { color: rgba(255,255,255,.75); font-size: 13px; margin: 14px 0 0; }
+.bg-modal-body .bg-btn { display: block; width: auto; margin: 6px auto 0; padding: 4px 20px; }
+.bg-modal-body .bg-btn.inline { display: inline-block; margin: 5px; }
+.bg-link { display: block; text-align: left; margin: 0 0 14px; text-transform: uppercase; font-weight: 700; color: var(--bg-amber); background: none; border: 0; font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+.bg-link:hover { text-decoration: underline; }
+.bg-warn { color: #ff3333 !important; text-align: center !important; }
+.bg-example { pointer-events: none; margin: 0 0 12px; background: var(--bg-deep); border-radius: 4px; padding: 4px 8px; }
+.bg-final { width: 70%; margin: 0 auto; text-transform: uppercase; }
+.bg-final div { display: flex; justify-content: space-between; align-items: center; background: var(--bg-green); border-radius: 4px; color: #fff; padding: 8px 10px; margin-bottom: 5px; font-size: 14px; font-weight: 700; }
+.bg-final b { font-size: 20px; }
+.bg-scores { width: 90%; margin: 16px auto; border-collapse: collapse; font-size: 13px; }
+.bg-scores td { padding: 5px 10px; text-align: left; }
+.bg-scores thead tr { background: #fff; color: var(--bg-teal); text-transform: uppercase; font-weight: 700; }
+.bg-scores tbody tr { background: var(--bg-sky); color: #fff; }
+.bg-scores tbody tr.me { background: var(--bg-green); }
+.bg-credit { margin: 10px 0 0; font-size: 12.5px; }
+@media (max-width: 760px) {
+  .bg-window { flex-direction: column; }
+  .bg-menu { flex: 0 0 auto; flex-direction: column; }
+  .bg-stats { display: flex; }
+  .bg-item { flex: 1 1 0; border-bottom: 0; border-right: 2px solid #fff; padding: 6px 8px; line-height: 24px; flex-direction: column; align-items: flex-start; }
+  .bg-item:last-child { border-right: 0; }
+  .bg-item:first-child { border-radius: 4px 0 0 0; }
+  .bg-buttons { display: flex; gap: 8px; padding: 8px; }
+  .bg-btn { margin: 0; font-size: 12px; padding: 2px 6px; }
+  .bg-bit { font-size: 18px; width: calc(12.5% - 6px); }
+  .bg-digits { font-size: 20px; padding: 0 8px; }
+  .bg-eq { padding: 0 4px; font-size: 22px; }
 }
 @media (max-width: 480px) {
-  .bg-bits { gap: 2px; }
-  .bg-bit { width: 28px; height: 34px; font-size: 14px; }
-  .bg-row { gap: 6px; }
-  .bg-eq { font-size: 15px; }
-  .bg-dec, .bg-dec-in { min-width: 50px; width: 50px; height: 34px; font-size: 16px; padding: 0 6px; }
-  .bg-go { display: none; }   /* Enter (or Go on a phone keyboard) submits the row */
-  .bg-rows { min-height: calc(7 * 34px + 6 * 6px); }
-  .bg-row.guide .bg-bit { font-size: 10px; }
+  .bgame { padding: 8px; }
+  .bg-row { height: 42px; padding: 4px 0; }
+  .bg-rows { min-height: calc(7 * 42px); }
+  .bg-bit { font-size: 15px; width: calc(12.5% - 4px); }
+  .bg-digits { font-size: 17px; padding: 0 6px; margin-right: 3px; }
+  .bg-guide { height: 30px; }
+  .bg-guide-nums span { line-height: 30px; font-size: 12px; }
+  .bg-calc { width: 132px; }
+  .bg-modal { max-width: 92%; }
 }
