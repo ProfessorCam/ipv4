@@ -435,8 +435,8 @@ sup { font-size: .72em; line-height: 0; }
 .cidr-readout { color: var(--accent); font-weight: 700; font-size: 40px; margin-left: 4px; }
 .cidr-size { font-size: 16px; color: var(--muted); }
 .cidr-size b { color: var(--ink); font-family: var(--mono); font-size: 22px; }
-.cidr-range { width: 100%; margin: 6px 0 0; accent-color: var(--accent); cursor: pointer; height: 28px; }
-.cidr-range:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.cidr-range, .pow2-range { width: 100%; margin: 6px 0 0; accent-color: var(--accent); cursor: pointer; height: 28px; }
+.cidr-range:focus-visible, .pow2-range:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
 .cidr-ticks { display: flex; justify-content: space-between; padding: 0 7px; margin: -2px 0 10px; }
 .cidr-ticks span { flex: 1; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); border-top: 2px solid var(--line); padding-top: 3px; height: 18px; }
 .cidr-ticks span.major { border-top-color: #a8b3c7; }
@@ -649,6 +649,31 @@ table.lab.exhibit-table td { font-family: var(--mono); font-size: 13.5px; white-
 .nav-section.s-cidr .nav-group     { color: #8fdcac; }
 .nav-section.s-kinds .nav-group    { color: #e2a6ee; }
 .nav-section.s-practice .nav-group { color: #f3d08a; }
+
+/* every column of the mask chart is a number, so keep them all in the mono face */
+table.lab.nums td { font-family: var(--mono); font-size: 13.5px; }
+
+/* ---------- powers of two: one block per address ---------- */
+.pow2 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 16px; margin: 10px 0 16px; }
+.pow2-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.pow2-sum { font-size: 21px; }
+.pow2-sum b { font-family: var(--mono); }
+.pow2-sum sup { font-family: var(--mono); font-size: .62em; }
+.pow2-eq { color: var(--muted); margin: 0 9px; }
+.pow2-note { color: var(--muted); font-size: 13.5px; font-family: var(--mono); }
+.pow2-ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); margin: -4px 2px 12px; }
+.pow2-blocks { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px; }
+.ipb { display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(47,111,237,.35); border-radius: 4px; font-family: var(--mono); font-weight: 700; overflow: hidden; }
+.pow2-blocks.sz-xl .ipb { width: 54px; height: 40px; font-size: 13px; }
+.pow2-blocks.sz-lg .ipb { width: 38px; height: 30px; font-size: 11px; }
+.pow2-blocks.sz-md .ipb { width: 27px; height: 22px; font-size: 9px; }
+.pow2-blocks.sz-sm { gap: 3px; }
+.pow2-blocks.sz-sm .ipb { width: 15px; height: 13px; font-size: 0; border-radius: 3px; }
+.pow2-blocks.sz-xs { gap: 2px; }
+.pow2-blocks.sz-xs .ipb { width: 8px; height: 8px; font-size: 0; border-radius: 2px; }
+.pow2-caption { margin: 0; font-size: 15px; }
+[data-theme="dark"] .ipb { background: rgba(110,160,255,.16); color: #cfe0ff; border-color: rgba(110,160,255,.32); }
+@media (max-width: 860px) { .pow2-sum { font-size: 18px; } .pow2-ticks span:nth-child(even) { visibility: hidden; } }
 
 /* ---------- finished the check questions ---------- */
 .row .tick { flex: 0 0 auto; margin-left: auto; font-size: 13px; line-height: 1; color: #7cc79a; }

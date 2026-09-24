@@ -261,6 +261,56 @@
     apply();
   }
 
+  /* ---------- widget: powers of two, drawn as one block per address ---------- */
+
+  var pow2Memory = {};
+
+  function pow2Html(c) {
+    var min = c.min === undefined ? 0 : c.min, max = c.max === undefined ? 10 : c.max;
+    var start = pow2Memory.bits !== undefined ? pow2Memory.bits : (c.start === undefined ? 3 : c.start);
+    start = Math.min(max, Math.max(min, start));
+    var ticks = [];
+    for (var b = min; b <= max; b++) ticks.push('<span>' + b + '</span>');
+    return '<div class="pow2">' +
+      '<div class="pow2-head"><div class="pow2-sum"><b class="pow2-bits"></b> bits<span class="pow2-eq">=</span>2<sup class="pow2-exp"></sup><span class="pow2-eq">=</span><b class="pow2-n"></b> addresses</div>' +
+      '<div class="pow2-note"></div></div>' +
+      '<input class="pow2-range" type="range" min="' + min + '" max="' + max + '" value="' + start + '" step="1" aria-label="Number of bits">' +
+      '<div class="pow2-ticks">' + ticks.join('') + '</div>' +
+      '<div class="pow2-blocks" aria-hidden="true"></div>' +
+      '<p class="pow2-caption"></p></div>';
+  }
+
+  function wirePow2(el) {
+    var range = el.querySelector('.pow2-range');
+    var bitsEl = el.querySelector('.pow2-bits'), expEl = el.querySelector('.pow2-exp'), nEl = el.querySelector('.pow2-n');
+    var noteEl = el.querySelector('.pow2-note'), blocks = el.querySelector('.pow2-blocks'), cap = el.querySelector('.pow2-caption');
+    function sizeClass(n) { return n <= 4 ? 'sz-xl' : n <= 16 ? 'sz-lg' : n <= 64 ? 'sz-md' : n <= 256 ? 'sz-sm' : 'sz-xs'; }
+    function apply() {
+      var b = +range.value, n = Math.pow(2, b), p = 32 - b;
+      var usable = b >= 2 ? n - 2 : n;   /* /31 gives 2, /32 gives 1 */
+      pow2Memory.bits = b;
+      bitsEl.textContent = b;
+      expEl.textContent = b;
+      nEl.textContent = fmtN(n);
+      range.setAttribute('aria-valuetext', b + ' bits, ' + fmtN(n) + ' addresses');
+      noteEl.textContent = 'values 0 to ' + fmtN(n - 1) + (b === 8 ? ', one whole octet' : b === 16 ? ', two octets' : '');
+      var cls = sizeClass(n), cell = '<span class="ipb">IP</span>';
+      blocks.className = 'pow2-blocks ' + cls;
+      blocks.innerHTML = new Array(n + 1).join(cell);
+      cap.innerHTML = fillPow2(lv({
+        s: 'With <b>{b}</b> switches you can make <b>{n}</b> different patterns, so <b>{b}</b> host bits give you <b>{n}</b> addresses. One more bit and it doubles to {n2}.',
+        m: '<b>{b}</b> host bits hold <b>{n}</b> addresses, which is a <code>/{p}</code> block. Every bit you add doubles the block; every bit you take away halves it.',
+        e: '2<sup>{b}</sup> = {n}. Host bits {b} means prefix <code>/{p}</code>, usable {u}.'
+      }), { b: b, n: fmtN(n), n2: fmtN(n * 2), p: p, u: fmtN(usable) });
+    }
+    range.addEventListener('input', apply);
+    apply();
+  }
+
+  function fillPow2(t, map) {
+    return String(t).replace(/\{(\w+)\}/g, function (m, k) { return map[k] !== undefined ? map[k] : m; });
+  }
+
   /* ---------- widget: split one block into equal subnets ---------- */
 
   function splitHtml(s) {
@@ -582,6 +632,7 @@
     if (s.binary) h.push(binaryHtml(s.binary));
     if (s.anatomy) h.push(anatomyHtml(s.anatomy));
     if (s.cidr) h.push(cidrHtml(s.cidr));
+    if (s.pow2) h.push(pow2Html(s.pow2));
     if (s.split) h.push(splitHtml(s.split));
     if (s.classify) h.push(classifyHtml(s.classify));
     if (s.quiz) h.push(quizHtml(s.quiz));
@@ -774,6 +825,7 @@
     Array.prototype.forEach.call(main.querySelectorAll('.check'), wireCheck);
     Array.prototype.forEach.call(main.querySelectorAll('.binary'), wireBinary);
     Array.prototype.forEach.call(main.querySelectorAll('.cidr'), wireCidr);
+    Array.prototype.forEach.call(main.querySelectorAll('.pow2'), wirePow2);
     Array.prototype.forEach.call(main.querySelectorAll('.split'), wireSplit);
     Array.prototype.forEach.call(main.querySelectorAll('.classify'), wireClassify);
     Array.prototype.forEach.call(main.querySelectorAll('.quiz:not(.exam)'), wireQuiz);
