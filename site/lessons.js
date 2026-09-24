@@ -132,13 +132,13 @@ var LESSONS = [
     sections: [
       { h: 'A line through the address', p: {
         s: [
-          'Look at <code>192.168.1.10</code> with the usual home mask, <code>/24</code>. The first three numbers, coloured blue, are the network: they are the same on every machine in your house. The last number, coloured pink, is the host: it is different on each machine.'
+          'Look at <code>192.168.1.10</code> with the usual home mask, <code>/24</code>. The first three numbers, coloured blue, are the network: they are the same on every machine in your house. The last number, coloured pink, is the host: it is different on each machine. Drag the slider to move the line, or type a different address, and watch the colours follow it.'
         ],
         m: [
-          'Take <code>192.168.1.10</code> with a <code>/24</code> mask. The first 24 bits (three octets) are the <b>network portion</b>: identical on every host in the subnet. The last 8 bits are the <b>host portion</b>: unique to each machine. The mask does not travel in the packet; each host is configured with it and uses it locally.'
+          'Take <code>192.168.1.10</code> with a <code>/24</code> mask. The first 24 bits (three octets) are the <b>network portion</b>: identical on every host in the subnet. The last 8 bits are the <b>host portion</b>: unique to each machine. The mask does not travel in the packet; each host is configured with it and uses it locally. Move the slider to put the line anywhere from /8 to /32, and type any address you like: the octets, the mask and the bits all follow.'
         ],
         e: [
-          '<code>192.168.1.10/24</code>: bits 0 to 23 are the network prefix, bits 24 to 31 the host identifier. The prefix is not carried in the IPv4 header; it is per-interface configuration (static, DHCP option 1, or derived from routing) and is only ever applied locally.'
+          '<code>192.168.1.10/24</code>: bits 0 to 23 are the network prefix, bits 24 to 31 the host identifier. The prefix is not carried in the IPv4 header; it is per-interface configuration (static, DHCP option 1, or derived from routing) and is only ever applied locally. Move the line: whenever <i>p</i> is not a multiple of 8 an octet is split, which is the case worth practising.'
         ]
       }, anatomy: { kind: 'ip4', value: '192.168.1.10', prefix: 24, left: 'the network part, the same on every machine in this subnet', right: 'the host part, different on every machine in this subnet' }, after: {
         s: [

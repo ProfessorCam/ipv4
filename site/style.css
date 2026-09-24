@@ -655,6 +655,15 @@ table.lab.exhibit-table td { font-family: var(--mono); font-size: 13.5px; white-
 /* every column of the mask chart is a number, so keep them all in the mono face */
 table.lab.nums td { font-family: var(--mono); font-size: 13.5px; }
 
+/* ---------- the line you can move through an address ---------- */
+.anatomy-widget { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 12px; margin: 6px 0 14px; }
+.anatomy-widget .widget-row { margin-top: 0; align-items: center; }
+.anat-prefix { display: inline-flex; align-items: baseline; gap: 8px; color: var(--muted); font-size: 14px; }
+.anat-readout { color: var(--accent); font-family: var(--mono); font-weight: 700; font-size: 26px; }
+.anatomy-widget .cidr-ticks { margin-bottom: 10px; }
+.anatomy-widget .anatomy { margin-top: 2px; }
+.anatomy-widget .hint { margin-bottom: 6px; }
+
 /* ---------- powers of two: one block per address ---------- */
 .pow2 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 16px; margin: 10px 0 16px; }
 .pow2-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }

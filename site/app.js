@@ -189,19 +189,57 @@
     });
   }
 
-  /* ---------- widget: the address anatomy strip (colour-coded octets) ---------- */
+  /* ---------- widget: the address anatomy strip, with the line you can move ---------- */
+
+  var anatMemory = {};   /* start value -> last prefix, so a reading-level change does not reset it */
 
   function anatomyHtml(a) {
-    var ip = S.parseIp(a.value), roles = S.octetRoles(a.prefix), h = [];
-    h.push('<div class="anatomy" aria-label="IPv4 address ' + esc(a.value) + ' with a /' + a.prefix + ' mask">');
-    a.value.split('.').forEach(function (x, i) { h.push('<span class="byte wide ' + roles[i] + '">' + esc(x) + '</span>'); });
-    h.push('<span class="byte slash">/' + a.prefix + '</span></div>');
-    var legend = [['net', 'Network', a.left], ['host', 'Host', a.right]];
-    if (roles.indexOf('mixed') >= 0) legend.splice(1, 0, ['mixed', 'Split octet', 'the /' + a.prefix + ' line falls inside this octet: some bits network, some host']);
+    var prefix = anatMemory[a.value] !== undefined ? anatMemory[a.value] : a.prefix;
+    var min = a.min === undefined ? 8 : a.min, max = a.max === undefined ? 32 : a.max;
+    return '<div class="anatomy-widget" data-ip="' + esc(a.value) + '" data-left="' + esc(a.left || '') + '" data-right="' + esc(a.right || '') + '" data-start="' + esc(a.value) + '">' +
+      '<div class="widget-row"><label>Address <input class="ip-input mono" type="text" value="' + esc(a.value) + '" size="15" spellcheck="false" autocomplete="off" aria-label="IPv4 address"></label>' +
+      '<label class="anat-prefix">Prefix <b class="anat-readout">/' + prefix + '</b></label>' +
+      '<span class="widget-err" hidden>That is not a valid IPv4 address: four numbers from 0 to 255.</span></div>' +
+      '<input class="cidr-range anat-range" type="range" min="' + min + '" max="' + max + '" value="' + prefix + '" step="1" aria-label="Prefix length: where the line falls">' +
+      '<div class="cidr-ticks">' + tickHtml(min, max) + '</div>' +
+      '<div class="anat-body">' + anatomyBody(S.parseIp(a.value), prefix, a.left, a.right) + '</div></div>';
+  }
+
+  function anatomyBody(ip, prefix, left, right) {
+    var roles = S.octetRoles(prefix), h = [], parts = S.fmtIp(ip).split('.');
+    h.push('<div class="anatomy" aria-label="IPv4 address ' + esc(S.fmtIp(ip)) + ' with a /' + prefix + ' mask">');
+    parts.forEach(function (x, i) { h.push('<span class="byte wide ' + roles[i] + '">' + esc(x) + '</span>'); });
+    h.push('<span class="byte slash">/' + prefix + '</span></div>');
+    var legend = [['net', 'Network', left || 'the network part, the same on every machine in this subnet'], ['host', 'Host', right || 'the host part, different on every machine in this subnet']];
+    if (roles.indexOf('mixed') >= 0) legend.splice(1, 0, ['mixed', 'Split octet', 'the /' + prefix + ' line falls inside this octet: some bits network, some host']);
     h.push('<div class="anatomy-legend">' + legend.map(function (l) { return '<span><i class="sw ' + l[0] + '"></i><b>' + esc(l[1]) + ':</b> ' + esc(l[2]) + '</span>'; }).join('') + '</div>');
-    h.push('<p class="hint">The same address as bits, with the mask <code>' + S.fmtIp(S.maskOf(a.prefix)) + '</code> drawn as the colour change:</p>');
-    h.push(bitStripHtml(ip, a.prefix));
+    var whole = prefix % 8 === 0;
+    h.push('<p class="hint">Mask <code>' + S.fmtIp(S.maskOf(prefix)) + '</code>. ' +
+      (whole ? 'The line falls on a dot: ' + (prefix / 8) + ' whole octet' + (prefix === 8 ? '' : 's') + ' to the network, ' + (4 - prefix / 8) + ' to the host.'
+             : 'The line falls inside octet ' + (Math.floor(prefix / 8) + 1) + ', so that octet is split: ' + (prefix % 8) + ' network bits and ' + (8 - prefix % 8) + ' host bits.') +
+      ' The same address as bits, with the mask drawn as the colour change:</p>');
+    h.push(bitStripHtml(ip, prefix));
     return h.join('');
+  }
+
+  function wireAnatomy(el) {
+    var input = el.querySelector('.ip-input'), err = el.querySelector('.widget-err');
+    var range = el.querySelector('.anat-range'), readout = el.querySelector('.anat-readout'), body = el.querySelector('.anat-body');
+    var left = el.dataset.left, right = el.dataset.right, key = el.dataset.start;
+    function apply() {
+      var ip = S.parseIp(el.dataset.ip), prefix = +range.value;
+      anatMemory[key] = prefix;
+      readout.textContent = '/' + prefix;
+      range.setAttribute('aria-valuetext', '/' + prefix + ', mask ' + S.fmtIp(S.maskOf(prefix)) + ', ' + (32 - prefix) + ' host bits');
+      body.innerHTML = anatomyBody(ip, prefix, left, right);
+    }
+    input.addEventListener('input', function () {
+      var ip = S.parseIp(input.value);
+      err.hidden = ip !== null || input.value.trim() === '';
+      if (ip !== null) { el.dataset.ip = S.fmtIp(ip); apply(); }
+    });
+    range.addEventListener('input', apply);
+    apply();
   }
 
   /* ---------- widget: the CIDR slider ---------- */
@@ -824,6 +862,7 @@
   function wireWidgets() {
     Array.prototype.forEach.call(main.querySelectorAll('.check'), wireCheck);
     Array.prototype.forEach.call(main.querySelectorAll('.binary'), wireBinary);
+    Array.prototype.forEach.call(main.querySelectorAll('.anatomy-widget'), wireAnatomy);
     Array.prototype.forEach.call(main.querySelectorAll('.cidr'), wireCidr);
     Array.prototype.forEach.call(main.querySelectorAll('.pow2'), wirePow2);
     Array.prototype.forEach.call(main.querySelectorAll('.split'), wireSplit);
