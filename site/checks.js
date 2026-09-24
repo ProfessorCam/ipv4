@@ -11,7 +11,7 @@ var CHECKS = (function () {
   function rnd(n) { return Math.floor(Math.random() * n); }
   function between(a, b) { return a + rnd(b - a + 1); }
   function pick(arr) { return arr[rnd(arr.length)]; }
-  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function ip(s) { return S.parseIp(s); }
   var HOME = ['192.168.0.0', '192.168.1.0', '192.168.10.0', '10.0.0.0', '10.1.1.0', '172.16.0.0', '172.20.5.0'];
 

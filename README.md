@@ -56,8 +56,8 @@ stored in the browser, and `?theme=light` or `?theme=dark` on the URL overrides 
 palette is a set of `[data-theme="dark"]` overrides at the end of `site/style.css`; the shared Packet
 Lessons theme above it is unchanged.
 
-The lesson list can be hidden with the button at the top left of the page, leaving the rail and the lesson.
-The choice is remembered in the browser.
+Click an empty part of the lesson list to hide it, leaving the rail and the lesson; click the slim strip that
+remains to bring it back. The choice is remembered in the browser.
 
 ## Layout
 

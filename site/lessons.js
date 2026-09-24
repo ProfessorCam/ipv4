@@ -99,7 +99,7 @@ var LESSONS = [
           'Each extra bit doubles the number of values. Subnetting is nothing but this table applied to the host bits: <i>n</i> host bits means 2<sup><i>n</i></sup> addresses in the block.'
         ],
         e: [
-          '2<sup><i>n</i></sup> for <i>n</i> = 0 to 8 covers a single octet; beyond that keep doubling (2<sup>9</sup> = 512, 2<sup>10</sup> = 1024, 2<sup>16</sup> = 65 536, 2<sup>24</sup> = 16 777 216).'
+          '2<sup><i>n</i></sup> for <i>n</i> = 0 to 8 covers a single octet; beyond that keep doubling (2<sup>9</sup> = 512, 2<sup>10</sup> = 1024, 2<sup>16</sup> = 65,536, 2<sup>24</sup> = 16,777,216).'
         ]
       }, table: [
         ['Bits', 'Values', 'As a sum of place values'],
@@ -111,8 +111,8 @@ var LESSONS = [
         ['6', '64', '0 to 63'],
         ['7', '128', '0 to 127'],
         ['8', '256', '0 to 255, one whole octet'],
-        ['16', '65 536', 'two octets'],
-        ['24', '16 777 216', 'three octets']
+        ['16', '65,536', 'two octets'],
+        ['24', '16,777,216', 'three octets']
       ]}
     ]
   },
@@ -178,8 +178,8 @@ var LESSONS = [
       }, table: {
         s: [
           ['Prefix', 'Dotted mask', 'Host bits', 'Addresses'],
-          ['/8',  '255.0.0.0',       '24', '16 777 216'],
-          ['/16', '255.255.0.0',     '16', '65 536'],
+          ['/8',  '255.0.0.0',       '24', '16,777,216'],
+          ['/16', '255.255.0.0',     '16', '65,536'],
           ['/24', '255.255.255.0',   '8',  '256'],
           ['/25', '255.255.255.128', '7',  '128'],
           ['/26', '255.255.255.192', '6',  '64'],
@@ -191,8 +191,8 @@ var LESSONS = [
         ],
         m: [
           ['Prefix', 'Dotted mask', 'Host bits', 'Addresses', 'Usable hosts'],
-          ['/8',  '255.0.0.0',       '24', '16 777 216', '16 777 214'],
-          ['/16', '255.255.0.0',     '16', '65 536', '65 534'],
+          ['/8',  '255.0.0.0',       '24', '16,777,216', '16,777,214'],
+          ['/16', '255.255.0.0',     '16', '65,536', '65,534'],
           ['/24', '255.255.255.0',   '8',  '256', '254'],
           ['/25', '255.255.255.128', '7',  '128', '126'],
           ['/26', '255.255.255.192', '6',  '64', '62'],
@@ -355,7 +355,7 @@ var LESSONS = [
       ['Private ranges', {
         s: 'Three families of addresses that anyone may use indoors: <code>10.x.x.x</code>, <code>172.16</code> to <code>172.31</code>, and <code>192.168.x.x</code>.',
         m: '<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code> and <code>192.168.0.0/16</code> (RFC 1918). Free to use inside any network; never routed on the internet.',
-        e: 'RFC 1918: 10/8 (16.7 M), 172.16/12 (1 M, 172.16.0.0 to 172.31.255.255), 192.168/16 (65 536). Plus 100.64/10 (RFC 6598) for carrier NAT. All filtered at internet borders (bogons).'
+        e: 'RFC 1918: 10/8 (16.7 M), 172.16/12 (1 M, 172.16.0.0 to 172.31.255.255), 192.168/16 (65,536). Plus 100.64/10 (RFC 6598) for carrier NAT. All filtered at internet borders (bogons).'
       }],
       ['How they reach the internet', {
         s: 'Your router swaps your private address for its one public address on the way out, and swaps it back on the way in. That trick is called NAT.',
@@ -384,14 +384,14 @@ var LESSONS = [
           ['Range', 'Written as', 'How big', 'Where you see it'],
           ['10.0.0.0 to 10.255.255.255', '10.0.0.0/8', 'about 16 million', 'big companies, schools, VPNs'],
           ['172.16.0.0 to 172.31.255.255', '172.16.0.0/12', 'about 1 million', 'Docker, some offices'],
-          ['192.168.0.0 to 192.168.255.255', '192.168.0.0/16', '65 536', 'almost every home router']
+          ['192.168.0.0 to 192.168.255.255', '192.168.0.0/16', '65,536', 'almost every home router']
         ],
         m: [
           ['Block', 'Range', 'Addresses', 'Old class', 'Typical use'],
-          ['10.0.0.0/8', '10.0.0.0 to 10.255.255.255', '16 777 216', 'one A', 'enterprises, campuses, cloud VPCs, VPNs'],
-          ['172.16.0.0/12', '172.16.0.0 to 172.31.255.255', '1 048 576', 'sixteen Bs', 'Docker bridges (172.17.0.0/16), mid-size offices'],
-          ['192.168.0.0/16', '192.168.0.0 to 192.168.255.255', '65 536', '256 Cs', 'home and small-office routers'],
-          ['100.64.0.0/10', '100.64.0.0 to 100.127.255.255', '4 194 304', '', 'ISP carrier-grade NAT (RFC 6598), not for your LAN']
+          ['10.0.0.0/8', '10.0.0.0 to 10.255.255.255', '16,777,216', 'one A', 'enterprises, campuses, cloud VPCs, VPNs'],
+          ['172.16.0.0/12', '172.16.0.0 to 172.31.255.255', '1,048,576', 'sixteen Bs', 'Docker bridges (172.17.0.0/16), mid-size offices'],
+          ['192.168.0.0/16', '192.168.0.0 to 192.168.255.255', '65,536', '256 Cs', 'home and small-office routers'],
+          ['100.64.0.0/10', '100.64.0.0 to 100.127.255.255', '4,194,304', '', 'ISP carrier-grade NAT (RFC 6598), not for your LAN']
         ],
         e: [
           ['Block', 'Range', 'Size', 'RFC', 'Notes'],

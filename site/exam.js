@@ -11,7 +11,7 @@ var EXAM = (function () {
   function between(a, b) { return a + rnd(b - a + 1); }
   function pick(arr) { return arr[rnd(arr.length)]; }
   function shuffle(arr) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function ip(s) { return S.parseIp(s); }
   var f = S.fmtIp;
   var LANS = ['192.168.1.0', '192.168.10.0', '192.168.100.0', '10.1.1.0', '10.10.20.0', '172.16.5.0', '172.20.30.0'];
