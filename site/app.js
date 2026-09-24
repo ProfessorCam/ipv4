@@ -208,10 +208,14 @@
   function anatomyBody(ip, prefix, left, right) {
     var roles = S.octetRoles(prefix), h = [], parts = S.fmtIp(ip).split('.');
     h.push('<div class="anatomy" aria-label="IPv4 address ' + esc(S.fmtIp(ip)) + ' with a /' + prefix + ' mask">');
-    parts.forEach(function (x, i) { h.push('<span class="byte wide ' + roles[i] + '">' + esc(x) + '</span>'); });
+    parts.forEach(function (x, i) {
+      /* a split octet is shaded in proportion: its network bits from the left, host bits from the right */
+      var netBits = Math.max(0, Math.min(8, prefix - i * 8)), style = roles[i] === 'mixed' ? ' style="--split:' + (netBits / 8 * 100) + '%"' : '';
+      h.push('<span class="byte wide ' + roles[i] + '"' + style + ' title="' + netBits + ' network bit' + (netBits === 1 ? '' : 's') + ', ' + (8 - netBits) + ' host bit' + (8 - netBits === 1 ? '' : 's') + '">' + esc(x) + '</span>');
+    });
     h.push('<span class="byte slash">/' + prefix + '</span></div>');
     var legend = [['net', 'Network', left || 'the network part, the same on every machine in this subnet'], ['host', 'Host', right || 'the host part, different on every machine in this subnet']];
-    if (roles.indexOf('mixed') >= 0) legend.splice(1, 0, ['mixed', 'Split octet', 'the /' + prefix + ' line falls inside this octet: some bits network, some host']);
+    if (roles.indexOf('mixed') >= 0) legend.splice(1, 0, ['mixed', 'Split octet', 'the /' + prefix + ' line falls inside this octet: ' + (prefix % 8) + ' bits network, ' + (8 - prefix % 8) + ' host, shaded in that proportion']);
     h.push('<div class="anatomy-legend">' + legend.map(function (l) { return '<span><i class="sw ' + l[0] + '"></i><b>' + esc(l[1]) + ':</b> ' + esc(l[2]) + '</span>'; }).join('') + '</div>');
     var whole = prefix % 8 === 0;
     h.push('<p class="hint">Mask <code>' + S.fmtIp(S.maskOf(prefix)) + '</code>. ' +
