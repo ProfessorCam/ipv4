@@ -878,3 +878,10 @@ button.bg-digits:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 /* guard rails: the prefix floor for a private block */
 .guard-note { margin: 2px 0 8px; font-size: 13.5px; }
 .guard-note[hidden] { display: none; }
+
+/* CIDR slider, top right: the address range of one subnet */
+.cidr-size { text-align: right; }
+.cidr-range-ips { margin-top: 2px; line-height: 1.25; }
+.cidr-size .cidr-span { display: block; font-family: var(--mono); font-size: 22px; color: var(--accent); }
+.cidr-span-full { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+@media (max-width: 860px) { .cidr-size { text-align: left; } }

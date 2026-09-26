@@ -299,7 +299,8 @@
     var start = Math.max(lo, sliderMemory[c.ip] !== undefined ? sliderMemory[c.ip] : c.start);
     return '<div class="cidr" data-ip="' + esc(c.ip) + '" data-caption="' + esc(JSON.stringify(c.caption || '')) + '">' +
       '<div class="cidr-head"><div class="cidr-ip">' + esc(c.ip) + '<span class="cidr-readout">/' + start + '</span></div>' +
-      '<div class="cidr-size"><b class="cidr-n"></b> addresses</div></div>' +
+      '<div class="cidr-size"><div><b class="cidr-n"></b> addresses</div>' +
+      '<div class="cidr-range-ips" aria-live="polite"><b class="cidr-span"></b><small class="cidr-span-full"></small></div></div></div>' +
       '<input class="cidr-range" type="range" min="' + c.min + '" max="' + c.max + '" value="' + start + '" step="1" aria-label="Prefix length">' +
       '<div class="cidr-ticks">' + tickHtml(c.min, c.max) + '</div>' +
       (note ? '<p class="hint guard-note">' + note + '</p>' : '') +
@@ -336,6 +337,7 @@
   function wireCidr(el) {
     var ip = S.parseIp(el.dataset.ip), caption = JSON.parse(el.dataset.caption || '""');
     var range = el.querySelector('.cidr-range'), readout = el.querySelector('.cidr-readout'), n = el.querySelector('.cidr-n');
+    var span = el.querySelector('.cidr-span'), spanFull = el.querySelector('.cidr-span-full');
     var tilesEl = el.querySelector('.cidr-tiles'), strip = el.querySelector('.cidr-strip'), cap = el.querySelector('.cidr-caption');
     var bar = el.querySelector('.sizebar i'), note = el.querySelector('.sizebar-note');
     var maskline = el.querySelector('.cidr-maskline');
@@ -345,6 +347,10 @@
       sliderMemory[el.dataset.ip] = p;
       readout.textContent = '/' + p;
       n.textContent = fmtN(d.size);
+      /* the range of one subnet, showing only the octets that change: 0 – 127 at /25, 0.0 – 1.255 at /23 */
+      var vary = Math.ceil(d.hostBits / 8), lo = S.fmtIp(d.network).split('.'), hi = S.fmtIp(d.broadcast).split('.');
+      span.textContent = vary ? lo.slice(4 - vary).join('.') + ' \u2013 ' + hi.slice(4 - vary).join('.') : lo[3];
+      spanFull.textContent = 'one /' + p + ': ' + S.fmtIp(d.network) + (d.size > 1 ? ' to ' + S.fmtIp(d.broadcast) : '');
       range.setAttribute('aria-valuetext', '/' + p + ', ' + fmtN(d.size) + ' addresses, mask ' + S.fmtIp(d.mask));
       tilesEl.innerHTML = tiles(d);
       maskline.innerHTML = 'The subnet mask <code>' + S.fmtIp(d.mask) + '</code> as 32 bits: a solid run of ' + p + ' one' + (p === 1 ? '' : 's') + ' over the network part, then ' + d.hostBits + ' zero' + (d.hostBits === 1 ? '' : 's') + ' over the host part.';
