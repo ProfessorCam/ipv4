@@ -141,7 +141,7 @@ var LESSONS = [
   /* ------------------------------------------------------------------ mask */
   {
     id: 'mask',
-    stack: 'basics',
+    stack: 'cidr',
     chip: 'mask',
     title: 'Mask and CIDR',
     subtitle: 'Which bits name the network, which bits name the host',
