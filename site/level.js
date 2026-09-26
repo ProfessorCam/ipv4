@@ -1,22 +1,22 @@
-/* level.js - the ELI5 | Moderate reading level.
+/* level.js - the ELI5 | Normal reading level.
    This IPv4 copy has two levels. Content may still carry an 'e' (Engineer) key from the shared
-   Packet Lessons format; it is never shown here, and ?level=engineer or a saved 'e' opens Moderate.
+   Packet Lessons format; it is never shown here, and ?level=engineer or a saved 'e' opens Normal.
 
    Any piece of prose in lessons.js may be written three ways:
      'one string'                          -> the same at every level
-     { s: '...', m: '...', e: '...' }      -> one version per level (s = Simple, m = Moderate, e = Engineer)
+     { s: '...', m: '...', e: '...' }      -> one version per level (s = ELI5, m = Normal, e = Engineer, unused here)
      [ 'string', { s: '...', m: '...' } ]  -> an array where each entry may be either
-   A missing key falls back to Moderate, then to whatever exists. An explicit '' means
+   A missing key falls back to Normal, then to whatever exists. An explicit '' means
    "leave this paragraph out at this level". lv() resolves all of that, and also turns
    {{row:id}} / {{Row:id}} into 'the "Title" row' / 'The "Title" row' from the lesson's title. */
 
 var LEVELS = [
   { id: 's', label: 'ELI5',     hint: 'Explain it like I am five: plain words and the big idea' },
-  { id: 'm', label: 'Moderate', hint: 'CCNA-student depth' }
+  { id: 'm', label: 'Normal',   hint: 'CCNA-student depth' }
 ];
 
 var LEVEL_KEY = 'packet-lessons-level';
-var LEVEL_NAMES = { eli5: 's', simple: 's', moderate: 'm', engineer: 'm', s: 's', m: 'm', e: 'm' };
+var LEVEL_NAMES = { eli5: 's', simple: 's', normal: 'm', moderate: 'm', engineer: 'm', s: 's', m: 'm', e: 'm' };
 
 function getLevel() {
   var v = null;

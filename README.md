@@ -37,16 +37,16 @@ Then open <http://127.0.0.1:8082>. Stop it with `docker compose down`. Or, from 
 docker run --rm -it --name ipv4 -p 8082:8082 professorcryan/ipv4
 ```
 
-## Reading level (ELI5 | Moderate)
+## Reading level (ELI5 | Normal)
 
 The buttons at the top right of the page switch every explanation between two depths: **ELI5**
-(explain it like I'm five: the big idea in plain words) and **Moderate** (beginner CCNA student, the
-default). The choice is stored in the browser, and a link such as `index.html?level=eli5` (or `moderate`)
-opens the site at that level. Old `?level=simple` links open ELI5; `?level=engineer` opens Moderate.
+(explain it like I'm five: the big idea in plain words) and **Normal** (beginner CCNA student, the
+default). The choice is stored in the browser, and a link such as `index.html?level=eli5` (or `normal`)
+opens the site at that level. Old `?level=simple` links open ELI5; `?level=moderate` and `?level=engineer` open Normal.
 
 The mechanism is `site/level.js`. This site's copy has two levels; the other Packet Lessons sites keep three. In `site/lessons.js` any piece of
 prose can be a plain string (same at every level) or an object with `s`, `m` and `e` keys. A missing key
-falls back to Moderate; an empty string leaves that paragraph out at that level. Rows refer to each other
+falls back to Normal; an empty string leaves that paragraph out at that level. Rows refer to each other
 with `{{row:id}}`. Widget captions use the same objects, with `{size}`, `{mask}`, `{net}` and similar
 placeholders filled in from the live values.
 
@@ -71,7 +71,7 @@ site/
   style.css          the shared Packet Lessons theme, plus the widget styles at the end
   app.js             builds the nav, renders a lesson, draws and wires the widgets
   lessons.js         ALL teaching content lives here, one object per row
-  level.js           the ELI5 | Moderate toggle and the lv() text resolver
+  level.js           the ELI5 | Normal toggle and the lv() text resolver
   subnet.js          the arithmetic: masks, networks, broadcasts, classification, question generator
   checks.js          the "Check your understanding" question generators, one per row, and their grader
   exam.js            the CCNA-style multiple-choice generators for the Exam practice row

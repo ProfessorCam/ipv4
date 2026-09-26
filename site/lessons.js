@@ -23,7 +23,7 @@
  *     after    - paragraphs shown below all of the above
  *
  * Reading levels: any prose may be a plain string (the same at every level) or
- * { s: ..., m: ..., e: ... } for Simple / Moderate / Engineer. A missing key falls back
+ * { s: ..., m: ..., e: ... } for ELI5 / Normal (/ Engineer, unused on this site). A missing key falls back
  * to m; '' leaves that paragraph out at that level. Refer to other rows as {{row:id}}.
  * See level.js. All numbers in the widgets come from subnet.js, not from this file.
  */

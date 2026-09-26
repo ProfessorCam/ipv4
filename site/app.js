@@ -1099,7 +1099,7 @@
       '<li><b>Special addresses.</b> Loopback, APIPA, multicast, SSDP, Miracast, broadcast, 0.0.0.0 and the documentation ranges: what each means when you see it.</li>' +
       '<li><b>Try it yourself.</b> Random questions like "how many addresses are in 192.168.1.0/28?", checked as you go, with the working shown.</li>' +
       '</ol>' +
-      '<p class="hint"><b>Reading level.</b> The <b>ELI5</b> and <b>Moderate</b> buttons at the top right change how deep every explanation goes. ELI5 is the big idea in plain words; Moderate is CCNA-student depth. Your choice is remembered on this browser, and a link with <code>?level=eli5</code> or <code>?level=moderate</code> opens the site at that level.</p>' +
+      '<p class="hint"><b>Reading level.</b> The <b>ELI5</b> and <b>Normal</b> buttons at the top right change how deep every explanation goes. ELI5 is the big idea in plain words; Normal is CCNA-student depth. Your choice is remembered on this browser, and a link with <code>?level=eli5</code> or <code>?level=normal</code> opens the site at that level.</p>' +
       '<p>Every widget on this site is live: type a different address into any of them and every number is recomputed on the spot. Nothing is looked up in a table.</p>' +
       '<h2>Quick reference</h2>' +
       '<div class="table-wrap"><table class="lab hosts"><tr><th>Prefix</th><th>Mask</th><th>Host bits</th><th>Addresses</th><th>Usable hosts</th></tr>' + ref + '</table></div>' +
