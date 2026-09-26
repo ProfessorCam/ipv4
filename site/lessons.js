@@ -53,25 +53,25 @@ var LESSONS = [
     subtitle: 'What the four numbers really are',
     facts: [
       ['How long', {
-        s: '32 tiny switches, each on or off. We write them as four numbers from 0 to 255 with dots between.',
+        s: '32 bits. A bit is the smallest thing a computer stores: just a 1 or a 0. We write the 32 as four numbers from 0 to 255 with dots between.',
         m: '32 bits, written as four decimal numbers from 0 to 255 separated by dots. Each number is one byte, called an octet.',
         e: '32 bits, dotted-decimal: four octets, each 0 to 255. On the wire it is one big-endian 32-bit field in the IPv4 header.'
       }],
       ['Why 255', {
-        s: 'Eight switches can be set 256 different ways, and we count from 0, so the biggest number is 255.',
+        s: 'Eight bits can be set 256 different ways, and we count from 0, so the biggest number is 255.',
         m: 'Eight bits have 2<sup>8</sup> = 256 combinations. Counting from 0, the highest value is 255.',
         e: '2<sup>8</sup> = 256 values per octet, 0x00 to 0xFF. Any octet above 255 is not an address.'
       }]
     ],
     oneLiner: {
-      s: 'An IPv4 address is 32 on-or-off switches. The dots and the numbers are just a friendly way of writing them.',
+      s: 'An IPv4 address is 32 bits, each a 1 or a 0. The dots and the numbers are just a friendly way of writing them.',
       m: 'An IPv4 address is 32 bits. The dotted numbers you type are a shorthand for those bits, and every subnetting question is a question about which bits are which.',
       e: 'An IPv4 address is a 32-bit unsigned integer. Dotted-decimal is display notation; masks, prefixes and subnet boundaries are all defined on the bits.'
     },
     sections: [
       { h: 'Four numbers, thirty-two bits', p: {
         s: [
-          'A computer address like <code>192.168.1.10</code> looks like four numbers. Underneath, each of the four is really eight switches that are on (1) or off (0). Four groups of eight makes 32 switches, and that is the whole address.',
+          'A computer address like <code>192.168.1.10</code> looks like four numbers. Underneath, each of the four is really eight <b>bits</b>, and a bit is just a 1 or a 0. Four groups of eight makes 32 bits, and that is the whole address.',
           'Hover over any box below to see what it is worth. The boxes on the left of each group are worth more, the same way the left digit of 192 is worth more than the right one.'
         ],
         m: [
@@ -84,7 +84,7 @@ var LESSONS = [
         ]
       }, binary: { ip: '192.168.1.10', edit: true }, after: {
         s: [
-          'So <code>192</code> is <code>11000000</code>: the 128 switch and the 64 switch are on, 128 + 64 = 192. And <code>10</code> is <code>00001010</code>: 8 + 2.'
+          'So <code>192</code> is <code>11000000</code>: the 128 bit and the 64 bit are 1, 128 + 64 = 192. And <code>10</code> is <code>00001010</code>: 8 + 2.'
         ],
         m: [
           '<code>192</code> = 128 + 64 = <code>11000000</code>. <code>168</code> = 128 + 32 + 8 = <code>10101000</code>. <code>1</code> = <code>00000001</code>. <code>10</code> = 8 + 2 = <code>00001010</code>. Being able to do this quickly for the numbers 0, 128, 192, 224, 240, 248, 252, 254 and 255 is most of subnetting, because those are the only numbers that ever appear in a subnet mask.'
@@ -95,7 +95,7 @@ var LESSONS = [
       }},
       { h: 'Powers of two', p: {
         s: [
-          'Every time you add one more switch, the number of possible values doubles. Drag the slider and count the blocks: each block is one address.'
+          'Every time you add one more bit, the number of possible values doubles. Drag the slider and count the blocks: each block is one address.'
         ],
         m: [
           'Each extra bit doubles the number of values. Subnetting is nothing but this applied to the host bits: <i>n</i> host bits means 2<sup><i>n</i></sup> addresses in the block. Drag the slider and watch the block double and halve.'
@@ -116,15 +116,15 @@ var LESSONS = [
     subtitle: 'Octets to bits and back, against the clock',
     check: false,
     oneLiner: {
-      s: 'A game for practising the switches. Rows pile up; make the switches add up to the number, or type what the switches make, before the board fills.',
+      s: 'A game for practising bits. Rows pile up; make the bits add up to the number, or type what the bits make, before the board fills.',
       m: 'A clone of the classic Cisco Binary Game: rows of eight bits arrive on a clock, and you either toggle the bits to match a number or type the number the bits make. Same rules, levels and scoring as the original.',
       e: 'Cisco\'s Binary Game, rebuilt: 8-bit rows on a clock, toggle-to-match or type-the-value, seven rows on the board and the eighth ends it. Fluency here makes mask-to-prefix and block boundaries instant later.'
     },
     sections: [
       { h: 'How to play', p: {
         s: [
-          'Press <b>Play Game</b>. Rows of eight switches pile up from the bottom. On most rows, flip the switches so their values add up to the number on the right. On some rows the switches are green and fixed: click the <b>?</b> and type the number they make. A solved row disappears. If eight rows pile up, the game ends.',
-          'Start with the warm-up if this is your first go. The blue bar above the board tells you what each switch is worth: 128, 64, 32, 16, 8, 4, 2, 1.'
+          'Press <b>Play Game</b>. Rows of eight bits pile up from the bottom. On most rows, click the bits to turn them between 0 and 1 until their values add up to the number on the right. On some rows the bits are green and fixed: click the <b>?</b> and type the number they make. A solved row disappears. If eight rows pile up, the game ends.',
+          'Start with the warm-up if this is your first go. The blue bar above the board tells you what each bit is worth: 128, 64, 32, 16, 8, 4, 2, 1.'
         ],
         m: [
           'Press <b>Play Game</b>. Rows arrive on a clock. In a <b>binary puzzle</b> the target is on the right and you toggle the amber bits until they add up to it. In a <b>decimal puzzle</b> the bits are fixed (green) and you click the <b>?</b> and type their value on the number pad, or on your keyboard. A solved row vanishes; with seven rows on the board, the next one ends the game.',
@@ -158,7 +158,7 @@ var LESSONS = [
       }]
     ],
     oneLiner: {
-      s: 'The mask draws a line through the 32 switches: everything to the left names the network, everything to the right names one machine on it.',
+      s: 'The mask draws a line through the 32 bits: everything to the left names the network, everything to the right names one machine on it.',
       m: 'The subnet mask splits the 32 bits into a network part and a host part. Machines with the same network part are on the same subnet; the host part tells them apart.',
       e: 'A prefix length partitions the 32-bit address into network bits (fixed across the subnet) and host bits (unique within it). The mask is those network bits as ones.'
     },
@@ -181,7 +181,7 @@ var LESSONS = [
       }},
       { h: 'The masks you will meet', p: {
         s: [
-          'You do not have to memorise all of these. The pattern is what matters: each step to the right adds one switch to the network side and takes one away from the host side.'
+          'You do not have to memorise all of these. The pattern is what matters: each step to the right adds one bit to the network side and takes one away from the host side.'
         ],
         m: [
           'The full set for one octet. Each extra prefix bit halves the number of host addresses. The dotted form is what you type into a Windows or Linux network setting; the prefix is what routers, <code>ip addr</code> and every modern tool show.'
@@ -263,7 +263,7 @@ var LESSONS = [
     subtitle: 'One /24 into two /25s, four /26s, eight /27s',
     facts: [
       ['How many pieces', {
-        s: 'Each switch you move from host to network cuts every block in half. Move two, you get four pieces.',
+        s: 'Each bit you move from host to network cuts every block in half. Move two, you get four pieces.',
         m: 'Borrow <i>b</i> host bits and you get 2<sup><i>b</i></sup> equal subnets. /24 → /26 borrows 2 bits: 4 subnets of 64.',
         e: 'Child prefix c from parent p yields 2<sup>c−p</sup> subnets of 2<sup>32−c</sup> addresses, at increments of the child block size.'
       }],
@@ -475,7 +475,7 @@ var LESSONS = [
     subtitle: 'Random questions, checked as you go',
     facts: [
       ['The method', {
-        s: '1. Count the host switches: 32 minus the slash number. 2. Double 1 that many times. 3. Take away 2 for the machines that can use it.',
+        s: '1. Count the host bits: 32 minus the slash number. 2. Double 1 that many times. 3. Take away 2 for the machines that can use it.',
         m: '1. Host bits = 32 − prefix. 2. Addresses = 2<sup>host bits</sup>. 3. Usable = addresses − 2. 4. Block size = 256 − interesting mask octet; network = the multiple of it at or below the address; broadcast = next network − 1.',
         e: 'h = 32 − p; size = 2<sup>h</sup>; usable = size − 2 (p ≤ 30). net = ip AND mask; bcast = net OR ~mask; first = net + 1; last = bcast − 1. /31: both usable; /32: one.'
       }],
@@ -493,7 +493,7 @@ var LESSONS = [
     sections: [
       { h: 'Questions', p: {
         s: [
-          'Pick what kind of question you want and how hard. Type your answer and press Enter. If you get stuck, "Show me how" draws the switches for that exact question.'
+          'Pick what kind of question you want and how hard. Type your answer and press Enter. If you get stuck, "Show me how" draws the bits for that exact question.'
         ],
         m: [
           'Choose a question type and difficulty, type your answer and press Enter or Check. After each answer the working is shown at your current reading level. "Show me how" draws the 32-bit strip for the question so you can see where the line falls. Your score is kept for this browser tab only.'
@@ -504,8 +504,8 @@ var LESSONS = [
       }, quiz: { kinds: ['size', 'usable', 'netbc', 'range'] } },
       { h: 'Worked example: 192.168.1.0/28', p: {
         s: [
-          '<b>Step 1.</b> 32 − 28 = 4 host switches.',
-          '<b>Step 2.</b> 4 switches can be set 2 × 2 × 2 × 2 = <b>16</b> ways, so 16 addresses.',
+          '<b>Step 1.</b> 32 − 28 = 4 host bits.',
+          '<b>Step 2.</b> 4 bits can be set 2 × 2 × 2 × 2 = <b>16</b> ways, so 16 addresses.',
           '<b>Step 3.</b> The first one (.0) is the network\'s own name and the last one (.15) is for shouting to everyone, so <b>14</b> machines can use it.',
           '<b>Step 4.</b> The 16 addresses run from 192.168.1.0 to 192.168.1.15. The next block of 16 starts at .16.'
         ],

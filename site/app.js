@@ -402,7 +402,7 @@
       blocks.className = 'pow2-blocks ' + cls;
       blocks.innerHTML = new Array(n + 1).join(cell);
       cap.innerHTML = fillPow2(lv({
-        s: 'With <b>{b}</b> switches you can make <b>{n}</b> different patterns, so <b>{b}</b> host bits give you <b>{n}</b> addresses. One more bit and it doubles to {n2}.',
+        s: 'With <b>{b}</b> bits you can make <b>{n}</b> different patterns of 1s and 0s, so <b>{b}</b> host bits give you <b>{n}</b> addresses. One more bit and it doubles to {n2}.',
         m: '<b>{b}</b> host bits hold <b>{n}</b> addresses, which is a <code>/{p}</code> block. Every bit you add doubles the block; every bit you take away halves it.',
         e: '2<sup>{b}</sup> = {n}. Host bits {b} means prefix <code>/{p}</code>, usable {u}.'
       }), { b: b, n: fmtN(n), n2: fmtN(n * 2), p: p, u: fmtN(usable) });
@@ -788,8 +788,8 @@
     var help = el.querySelector('.bg-help'), n = '';
     if (bg.mode === 'intro') {
       n = '<b>Warm-up: no clock, no score.</b> ' + (bg.intro === 'binary'
-        ? lv({ s: 'Click the switches so they add up to the number on the right. The values are on the blue bar above.', m: 'Toggle the bits until they add up to the number on the right. The place values are on the blue bar above.', e: 'Toggle the bits to match the target; the starting pattern is a decoy.' })
-        : lv({ s: 'Now the switches are fixed. Add up the ones that are on, click the ? and type the total.', m: 'Now the bits are fixed: add up the place values of the 1s, click the ? and type the total on the number pad.', e: 'Decimal rows: click the ?, type the value of the fixed bits, press Enter.' })) +
+        ? lv({ s: 'Click the bits so they add up to the number on the right. The values are on the blue bar above.', m: 'Toggle the bits until they add up to the number on the right. The place values are on the blue bar above.', e: 'Toggle the bits to match the target; the starting pattern is a decoy.' })
+        : lv({ s: 'Now the bits are fixed. Add up the values of the 1s, click the ? and type the total.', m: 'Now the bits are fixed: add up the place values of the 1s, click the ? and type the total on the number pad.', e: 'Decimal rows: click the ?, type the value of the fixed bits, press Enter.' })) +
         ' <button type="button" class="bg-btn bg-skip">Skip warm-up</button>';
     }
     if (el._bgHelp !== n) { help.innerHTML = n; el._bgHelp = n; }
@@ -1006,7 +1006,7 @@
     }
     var lines = [];
     var sizeLine = lv({
-      s: '32 − ' + p + ' = <b>' + hb + '</b> host switches. Double 1 that many times: 2<sup>' + hb + '</sup> = <b>' + size + '</b> addresses.',
+      s: '32 − ' + p + ' = <b>' + hb + '</b> host bits. Double 1 that many times: 2<sup>' + hb + '</sup> = <b>' + size + '</b> addresses.',
       m: 'Host bits: 32 − ' + p + ' = ' + hb + '. Addresses: 2<sup>' + hb + '</sup> = <b>' + size + '</b>. Mask: <code>' + mask + '</code>.',
       e: 'h = 32 − ' + p + ' = ' + hb + '; 2<sup>' + hb + '</sup> = <b>' + size + '</b>. Mask <code>' + mask + '</code>, wildcard <code>' + S.fmtIp(d.wildcard) + '</code>.'
     });
@@ -1121,7 +1121,7 @@
       '<article class="welcome">' +
       '<h1>' + esc(SITE.title) + '</h1>' +
       '<p class="lead">' + lv({
-        s: 'An IP address is 32 switches. Subnetting is deciding where to draw a line through them: the switches on the left name the network, the ones on the right name a machine. Everything on this site is that one idea.',
+        s: 'An IP address is 32 bits, each a 1 or a 0. Subnetting is deciding where to draw a line through them: the bits on the left name the network, the ones on the right name a machine. Everything on this site is that one idea.',
         m: 'An IPv4 address is 32 bits split by a mask into a network part and a host part. Subnetting is choosing where that split falls, which decides how many addresses a network has and where it starts and ends. Every row here is that idea from a different angle.',
         e: 'IPv4 subnetting is prefix arithmetic on a 32-bit integer: the prefix length fixes the network bits, the remainder enumerates 2<sup>32−p</sup> addresses. This site makes the arithmetic visible and drills it.'
       }) + '</p>' +
