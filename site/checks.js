@@ -51,6 +51,29 @@ var CHECKS = (function () {
     };
   }
 
+  /* Mask and CIDR asks six: three on masks and prefixes, three on block sizes (from the old CIDR slider row). */
+  function maskQs() {
+      var p1 = between(9, 30), p2 = between(9, 30), p3 = between(8, 30);
+      var m2 = S.fmtIp(S.maskOf(p2)), roles = S.octetRoles(p2), mixed = roles.indexOf('mixed');
+      var explain2 = mixed >= 0
+        ? 'Full octets of 255 give ' + (mixed * 8) + ' bits; ' + ((S.maskOf(p2) >>> (24 - mixed * 8)) & 255) + ' has ' + (p2 - mixed * 8) + ' leading ones; ' + (mixed * 8) + ' + ' + (p2 - mixed * 8) + ' = /' + p2 + '.'
+        : 'Each 255 is eight ones: ' + (p2 / 8) + ' × 8 = /' + p2 + '.';
+      return [
+        { prompt: 'What is <b>/' + p1 + '</b> as a dotted subnet mask?', type: 'ip', answer: S.fmtIp(S.maskOf(p1)), explain: p1 + ' ones then ' + (32 - p1) + ' zeros: <code>' + S.fmtIp(S.maskOf(p1)) + '</code>.' },
+        { prompt: 'What prefix length is the mask <code>' + m2 + '</code>? Give just the number.', type: 'number', answer: p2, explain: explain2 },
+        { prompt: 'How many <b>host bits</b> does a <b>/' + p3 + '</b> leave?', type: 'number', answer: 32 - p3, explain: '32 − ' + p3 + ' = ' + (32 - p3) + '.' }
+      ];
+    }
+
+  function sizeQs() {
+      var p1 = between(16, 30), p2 = between(20, 30), n = between(2, 14);
+      return [
+        { prompt: 'How many addresses are in a <b>/' + p1 + '</b> block?', type: 'number', answer: S.blockSize(p1), explain: '32 − ' + p1 + ' = ' + (32 - p1) + ' host bits; 2<sup>' + (32 - p1) + '</sup> = ' + fmtN(S.blockSize(p1)) + '.' },
+        { prompt: 'How many <b>usable host</b> addresses does a <b>/' + p2 + '</b> have?', type: 'number', answer: S.usable(p2), explain: fmtN(S.blockSize(p2)) + ' addresses minus network and broadcast = ' + fmtN(S.usable(p2)) + '.' },
+        { prompt: 'A block holds exactly <b>' + fmtN(Math.pow(2, n)) + '</b> addresses. What is its prefix length? Give just the number.', type: 'number', answer: 32 - n, explain: fmtN(Math.pow(2, n)) + ' = 2<sup>' + n + '</sup>, so ' + n + ' host bits and 32 − ' + n + ' = /' + (32 - n) + '.' }
+      ];
+    }
+
   var GEN = {
     bits: function () {
       var v = between(1, 254), b = bin8(between(1, 254)), n = between(2, 12);
@@ -63,27 +86,7 @@ var CHECKS = (function () {
       ];
     },
 
-    mask: function () {
-      var p1 = between(9, 30), p2 = between(9, 30), p3 = between(8, 30);
-      var m2 = S.fmtIp(S.maskOf(p2)), roles = S.octetRoles(p2), mixed = roles.indexOf('mixed');
-      var explain2 = mixed >= 0
-        ? 'Full octets of 255 give ' + (mixed * 8) + ' bits; ' + ((S.maskOf(p2) >>> (24 - mixed * 8)) & 255) + ' has ' + (p2 - mixed * 8) + ' leading ones; ' + (mixed * 8) + ' + ' + (p2 - mixed * 8) + ' = /' + p2 + '.'
-        : 'Each 255 is eight ones: ' + (p2 / 8) + ' × 8 = /' + p2 + '.';
-      return [
-        { prompt: 'What is <b>/' + p1 + '</b> as a dotted subnet mask?', type: 'ip', answer: S.fmtIp(S.maskOf(p1)), explain: p1 + ' ones then ' + (32 - p1) + ' zeros: <code>' + S.fmtIp(S.maskOf(p1)) + '</code>.' },
-        { prompt: 'What prefix length is the mask <code>' + m2 + '</code>? Give just the number.', type: 'number', answer: p2, explain: explain2 },
-        { prompt: 'How many <b>host bits</b> does a <b>/' + p3 + '</b> leave?', type: 'number', answer: 32 - p3, explain: '32 − ' + p3 + ' = ' + (32 - p3) + '.' }
-      ];
-    },
-
-    slider: function () {
-      var p1 = between(16, 30), p2 = between(20, 30), n = between(2, 14);
-      return [
-        { prompt: 'How many addresses are in a <b>/' + p1 + '</b> block?', type: 'number', answer: S.blockSize(p1), explain: '32 − ' + p1 + ' = ' + (32 - p1) + ' host bits; 2<sup>' + (32 - p1) + '</sup> = ' + fmtN(S.blockSize(p1)) + '.' },
-        { prompt: 'How many <b>usable host</b> addresses does a <b>/' + p2 + '</b> have?', type: 'number', answer: S.usable(p2), explain: fmtN(S.blockSize(p2)) + ' addresses minus network and broadcast = ' + fmtN(S.usable(p2)) + '.' },
-        { prompt: 'A block holds exactly <b>' + fmtN(Math.pow(2, n)) + '</b> addresses. What is its prefix length? Give just the number.', type: 'number', answer: 32 - n, explain: fmtN(Math.pow(2, n)) + ' = 2<sup>' + n + '</sup>, so ' + n + ' host bits and 32 − ' + n + ' = /' + (32 - n) + '.' }
-      ];
-    },
+    mask: function () { return maskQs().concat(sizeQs()); },
 
     carve: function () {
       var p = between(16, 26), c = p + between(1, 4);

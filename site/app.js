@@ -1130,7 +1130,6 @@
       '<li><b>Bits and octets.</b> Why 192.168.1.10 is really 32 ones and zeros, and the powers of two that everything else depends on.</li>' +
       '<li><b>The binary game.</b> A clone of Cisco\'s Binary Game: octets to bits and back against the clock, with the original\'s levels, scoring and sounds.</li>' +
       '<li><b>Mask and CIDR.</b> The line through the address: <code>255.255.255.0</code> and <code>/24</code> are the same thing, and why "usable" is two less.</li>' +
-      '<li><b>The CIDR slider.</b> Drag from /16 to /32 and watch the block halve and double: /23 = 512, /24 = 256, /25 = 128.</li>' +
       '<li><b>Splitting a network.</b> One /24 into two /25s, four /26s or sixty-four /30s, with every resulting range listed.</li>' +
       '<li><b>Private vs public.</b> The three RFC 1918 ranges, why every home is 192.168.x.x, and what NAT does at the door.</li>' +
       '<li><b>Special addresses.</b> Loopback, APIPA, multicast, SSDP, Miracast, broadcast, 0.0.0.0 and the documentation ranges: what each means when you see it.</li>' +
@@ -1254,13 +1253,13 @@
 
   function checkHtml(rowId) {
     var st = checkMemory[rowId];
-    if (!st) { st = checkMemory[rowId] = { qs: CHECKS.questions(rowId), answers: ['', '', ''], graded: false }; }
+    if (!st) { var qs0 = CHECKS.questions(rowId); st = checkMemory[rowId] = { qs: qs0, answers: (qs0 || []).map(function () { return ''; }), graded: false }; }
     if (!st.qs) return '';
     var h = ['<section class="check-sec"><h2>Check your understanding' + (doneRows[rowId] ? ' <span class="done-badge">✓ Completed</span>' : '') + '</h2>' +
-      '<p class="hint">' + lv({ s: 'Three quick questions on this row. Type each answer and press Check. New numbers every time.', m: 'Three questions on this row, with fresh numbers each time. Type your answers and press Check; the working is shown for any you miss.', e: 'Three generated questions on this row. Answers are lenient about spacing and thousands separators.' }) + '</p>' +
+      '<p class="hint">' + lv({ s: '{N} quick questions on this row. Type each answer and press Check. New numbers every time.', m: '{N} questions on this row, with fresh numbers each time. Type your answers and press Check; the working is shown for any you miss.', e: '{N} generated questions on this row. Answers are lenient about spacing and thousands separators.' }).replace('{N}', ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][st.qs.length] || String(st.qs.length)) + '</p>' +
       '<div class="check" data-row="' + esc(rowId) + '"><ol>'];
     st.qs.forEach(function (q, i) {
-      h.push('<li><p class="cq">' + q.prompt + '</p><div class="ca"><input class="quiz-input" type="text" data-i="' + i + '" autocomplete="off" spellcheck="false" value="' + esc(st.answers[i]) + '" placeholder="' + (q.type === 'ip' ? 'a.b.c.d' : q.type === 'number' ? 'number' : q.type === 'bits' ? '8 bits' : 'one word') + '" aria-label="Answer ' + (i + 1) + '"></div><p class="cf" hidden></p></li>');
+      h.push('<li><p class="cq">' + q.prompt + '</p><div class="ca"><input class="quiz-input" type="text" data-i="' + i + '" autocomplete="off" spellcheck="false" value="' + esc(st.answers[i] || '') + '" placeholder="' + (q.type === 'ip' ? 'a.b.c.d' : q.type === 'number' ? 'number' : q.type === 'bits' ? '8 bits' : 'one word') + '" aria-label="Answer ' + (i + 1) + '"></div><p class="cf" hidden></p></li>');
     });
     h.push('</ol><div class="check-foot"><span class="check-result"></span><div class="check-actions">' +
       '<button type="button" class="btn check-go">Check</button><button type="button" class="btn ghost check-new">New questions</button></div></div></div></section>');

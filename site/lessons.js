@@ -1,7 +1,7 @@
 /*
  * lessons.js - the teaching content, one object per row in the left column.
  *
- *   id        short word used in the URL hash (#slider)
+ *   id        short word used in the URL hash (#mask)
  *   stack     'basics' | 'cidr' | 'kinds' | 'practice': groups the left column and sets the chip
  *   chip      the small chip text on the row
  *   title     big label in the left column
@@ -234,29 +234,12 @@ var LESSONS = [
       }, tableClass: 'compare nums', after: {
         s: '',
         m: [
-          '<b>Why "usable" is two less.</b> In every block the first address (all host bits 0) is the <b>network address</b>, the name of the subnet itself, and the last (all host bits 1) is the <b>broadcast address</b>, which reaches every host in it. Neither can be given to a machine. The two exceptions, <code>/31</code> and <code>/32</code>, are explained in {{row:slider}}.'
+          '<b>Why "usable" is two less.</b> In every block the first address (all host bits 0) is the <b>network address</b>, the name of the subnet itself, and the last (all host bits 1) is the <b>broadcast address</b>, which reaches every host in it. Neither can be given to a machine. The two exceptions, <code>/31</code> and <code>/32</code>, are explained just below.'
         ],
         e: [
           'Host-bits-all-zero is the network (prefix) address; all-ones is the directed broadcast. Both are excluded from assignment except on /31 links (RFC 3021, no broadcast needed on point-to-point) and /32 host routes.'
         ]
-      }}
-    ]
-  },
-
-  /* ------------------------------------------------------------------ slider */
-  {
-    id: 'slider',
-    stack: 'cidr',
-    chip: 'cidr',
-    title: 'The CIDR slider',
-    subtitle: 'Move the line, watch the block halve and double',
-    oneLiner: '',
-    sections: [
-      { cidr: { ip: '192.168.0.0', min: 8, max: 32, start: 24, caption: {
-        s: 'With <b>/{p}</b> the network keeps {p} switches and leaves <b>{hb}</b> for hosts. {hb} switches can be set 2<sup>{hb}</sup> = <b>{size}</b> ways, so the block has {size} addresses. Take away the first and last and <b>{usable}</b> machines can use it.',
-        m: '<b>/{p}</b> leaves <b>{hb} host bits</b>, so the block holds 2<sup>{hb}</sup> = <b>{size}</b> addresses, from <code>{net}</code> (the network address) to <code>{bc}</code> (broadcast). That leaves <b>{usable}</b> usable host addresses. The mask is <code>{mask}</code>.',
-        e: '<b>/{p}</b>: mask <code>{mask}</code>, wildcard <code>{wild}</code>. 2<sup>{hb}</sup> = <b>{size}</b> addresses, <code>{net}</code> to <code>{bc}</code>; <b>{usable}</b> assignable. Next block starts at <code>{next}</code>.'
-      } } },
+      }},
       { h: 'The two odd ones: /31 and /32', p: {
         s: [
           'At the far right of the slider the usual "take away two" rule stops. <code>/31</code> has just two addresses and both are used, on a wire that joins exactly two routers. <code>/32</code> is one single machine.'
