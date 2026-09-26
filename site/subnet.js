@@ -167,6 +167,18 @@ var SUBNET = (function () {
     return { total: count, shown: out.length, subnets: out };
   }
 
+  /* The RFC 1918 block an address sits in, or null. A prefix shorter than the block's own would
+     reach outside the private range (192.168.0.0/8 is mostly public space), so widgets and the
+     question generator use this as a floor: 192.168.x.x stops at /16, 172.16-31.x.x at /12. */
+  var PRIVATE_BLOCKS = [['192.168.0.0', 16], ['172.16.0.0', 12], ['10.0.0.0', 8]];
+  function privateBlock(ip) {
+    for (var i = 0; i < PRIVATE_BLOCKS.length; i++) {
+      var p = PRIVATE_BLOCKS[i][1], net = parseIp(PRIVATE_BLOCKS[i][0]);
+      if (((ip & maskOf(p)) >>> 0) === net) return { network: net, prefix: p, cidr: PRIVATE_BLOCKS[i][0] + '/' + p };
+    }
+    return null;
+  }
+
   /* ---------- practice questions ---------- */
 
   function rnd(n) { return Math.floor(Math.random() * n); }
@@ -182,6 +194,8 @@ var SUBNET = (function () {
       prefix = 8 + rnd(25);
       ip = ((rnd(224) << 24) | (rnd(256) << 16) | (rnd(256) << 8) | rnd(256)) >>> 0;
       if (rnd(2)) ip = (parseIp(pick(HOME_BLOCKS)) | (rnd(256) << 8) | rnd(256)) >>> 0;
+      var pb = privateBlock(ip);   /* never 192.168.x.x/8 or 172.16.x.x/10 */
+      if (pb && prefix < pb.prefix) prefix = pb.prefix + rnd(33 - pb.prefix);
     } else if (difficulty === 'medium') {
       prefix = 16 + rnd(15);
       ip = (parseIp(pick(HOME_BLOCKS)) | (rnd(256) << 8) | rnd(256)) >>> 0;
@@ -235,7 +249,7 @@ var SUBNET = (function () {
     blockSize: blockSize, hostBits: hostBits, usable: usable, firstHost: firstHost, lastHost: lastHost,
     toBits: toBits, octetBits: octetBits, octetRoles: octetRoles, describe: describe,
     RANGES: RANGES, classify: classify, classOf: classOf, subnetsOf: subnetsOf,
-    randomQuestion: randomQuestion, checkAnswer: checkAnswer
+    randomQuestion: randomQuestion, checkAnswer: checkAnswer, privateBlock: privateBlock
   };
 })();
 

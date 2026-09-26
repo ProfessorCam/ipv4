@@ -498,7 +498,7 @@ var LESSONS = [
       }],
       ['Difficulty', {
         s: 'Easy sticks to friendly home networks. Medium and Hard move the line into the other numbers.',
-        m: 'Easy: /24 to /30 inside a familiar /24. Medium: /16 to /30 on a random host address. Hard: /8 to /32, including /31 and /32.',
+        m: 'Easy: /24 to /30 inside a familiar /24. Medium: /16 to /30 on a random host address. Hard: /8 to /32, including /31 and /32, though a 192.168.x.x address never goes shorter than /16 or a 172.16.x.x one shorter than /12.',
         e: 'Easy: p ∈ [24,30], aligned blocks in RFC 1918 /24s. Medium: p ∈ [16,30], arbitrary host. Hard: p ∈ [8,32], arbitrary address, so octets 2 and 3 split too.'
       }]
     ],

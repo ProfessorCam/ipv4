@@ -227,15 +227,17 @@
   var anatMemory = {};   /* start value -> last prefix, so a reading-level change does not reset it */
 
   function anatomyHtml(a) {
-    var prefix = anatMemory[a.value] !== undefined ? anatMemory[a.value] : a.prefix;
-    var min = a.min === undefined ? 8 : a.min, max = a.max === undefined ? 32 : a.max;
-    return '<div class="anatomy-widget" data-ip="' + esc(a.value) + '" data-left="' + esc(a.left || '') + '" data-right="' + esc(a.right || '') + '" data-start="' + esc(a.value) + '">' +
-      '<div class="widget-row"><label>Address <input class="ip-input mono" type="text" value="' + esc(a.value) + '" size="15" spellcheck="false" autocomplete="off" aria-label="IPv4 address"></label>' +
+    var base = a.min === undefined ? 8 : a.min, max = a.max === undefined ? 32 : a.max;
+    var shown = anatMemory[a.value + '#ip'] || a.value, ipN = S.parseIp(shown), min = prefixFloor(ipN, base);
+    var prefix = Math.max(min, anatMemory[a.value] !== undefined ? anatMemory[a.value] : a.prefix);
+    return '<div class="anatomy-widget" data-ip="' + esc(shown) + '" data-min="' + base + '" data-start="' + esc(a.value) + '">' +
+      '<div class="widget-row"><label>Address <input class="ip-input mono" type="text" value="' + esc(shown) + '" size="15" spellcheck="false" autocomplete="off" aria-label="IPv4 address"></label>' +
       '<label class="anat-prefix">Prefix <b class="anat-readout">/' + prefix + '</b></label>' +
       '<span class="widget-err" hidden>That is not a valid IPv4 address: four numbers from 0 to 255.</span></div>' +
       '<input class="cidr-range anat-range" type="range" min="' + min + '" max="' + max + '" value="' + prefix + '" step="1" aria-label="Prefix length: where the line falls">' +
       '<div class="cidr-ticks">' + tickHtml(min, max) + '</div>' +
-      '<div class="anat-body">' + anatomyBody(S.parseIp(a.value), prefix) + '</div></div>';
+      '<p class="hint guard-note"' + (guardNote(ipN, base) ? '' : ' hidden') + '>' + guardNote(ipN, base) + '</p>' +
+      '<div class="anat-body">' + anatomyBody(ipN, prefix) + '</div></div>';
   }
 
   function anatomyBody(ip, prefix) {
@@ -261,10 +263,19 @@
   function wireAnatomy(el) {
     var input = el.querySelector('.ip-input'), err = el.querySelector('.widget-err');
     var range = el.querySelector('.anat-range'), readout = el.querySelector('.anat-readout'), body = el.querySelector('.anat-body');
-    var key = el.dataset.start;
+    var key = el.dataset.start, base = +el.dataset.min, ticks = el.querySelector('.cidr-ticks'), guard = el.querySelector('.guard-note');
     function apply() {
-      var ip = S.parseIp(el.dataset.ip), prefix = +range.value;
+      var ip = S.parseIp(el.dataset.ip), lo = prefixFloor(ip, base);
+      if (+range.min !== lo) {   /* the address moved into or out of a private block */
+        range.min = lo;
+        if (+range.value < lo) range.value = lo;
+        ticks.innerHTML = tickHtml(lo, +range.max);
+      }
+      var g = guardNote(ip, base);
+      guard.innerHTML = g; guard.hidden = !g;
+      var prefix = +range.value;
       anatMemory[key] = prefix;
+      anatMemory[key + '#ip'] = el.dataset.ip;
       readout.textContent = '/' + prefix;
       range.setAttribute('aria-valuetext', '/' + prefix + ', mask ' + S.fmtIp(S.maskOf(prefix)) + ', ' + (32 - prefix) + ' host bits');
       body.innerHTML = anatomyBody(ip, prefix);
@@ -283,16 +294,27 @@
   var sliderMemory = {};   /* ip -> last prefix, so a reading-level change does not reset the slider */
 
   function cidrHtml(c) {
-    var start = sliderMemory[c.ip] !== undefined ? sliderMemory[c.ip] : c.start;
+    var ipN = S.parseIp(c.ip), lo = prefixFloor(ipN, c.min), note = guardNote(ipN, c.min);
+    c = { ip: c.ip, min: lo, max: c.max, start: c.start, caption: c.caption };
+    var start = Math.max(lo, sliderMemory[c.ip] !== undefined ? sliderMemory[c.ip] : c.start);
     return '<div class="cidr" data-ip="' + esc(c.ip) + '" data-caption="' + esc(JSON.stringify(c.caption || '')) + '">' +
       '<div class="cidr-head"><div class="cidr-ip">' + esc(c.ip) + '<span class="cidr-readout">/' + start + '</span></div>' +
       '<div class="cidr-size"><b class="cidr-n"></b> addresses</div></div>' +
       '<input class="cidr-range" type="range" min="' + c.min + '" max="' + c.max + '" value="' + start + '" step="1" aria-label="Prefix length">' +
       '<div class="cidr-ticks">' + tickHtml(c.min, c.max) + '</div>' +
+      (note ? '<p class="hint guard-note">' + note + '</p>' : '') +
       '<div class="cidr-tiles"></div>' +
       '<div class="sizebar-wrap"><div class="sizebar"><i></i></div><div class="sizebar-labels"><span>1 address</span><span class="sizebar-note"></span><span>/' + c.min + ' = ' + fmtN(S.blockSize(c.min)) + '</span></div></div>' +
       '<p class="hint cidr-maskline"></p><div class="cidr-strip"></div>' +
       '<p class="cidr-caption"></p></div>';
+  }
+
+  /* Guard rails: a private address cannot take a prefix shorter than its RFC 1918 block. */
+  function prefixFloor(ip, min) { var pb = ip === null ? null : S.privateBlock(ip); return pb ? Math.max(min, pb.prefix) : min; }
+  function guardNote(ip, min) {
+    var pb = ip === null ? null : S.privateBlock(ip);
+    if (!pb || pb.prefix <= min) return '';
+    return '<code>' + pb.cidr + '</code> is a private block, so the prefix stops at <b>/' + pb.prefix + '</b>.';
   }
 
   function tickHtml(min, max) {
@@ -823,10 +845,10 @@
     return '<div class="split" data-ip="' + esc(s.ip) + '">' +
       '<div class="widget-row">' +
       '<label>Parent network <input class="ip-input mono" type="text" value="' + esc(s.ip) + '" size="15" spellcheck="false" autocomplete="off" aria-label="Parent network address"></label>' +
-      '<label>Parent prefix <select class="split-parent">' + opts(8, 30, s.parent) + '</select></label>' +
+      '<label>Parent prefix <select class="split-parent">' + opts(prefixFloor(S.parseIp(s.ip), 8), 30, s.parent) + '</select></label>' +
       '<label>Split into <select class="split-child">' + opts(s.parent, 32, s.child) + '</select></label>' +
       '<span class="widget-err" hidden>That is not a valid IPv4 address.</span></div>' +
-      '<p class="split-summary"></p><div class="split-table"></div></div>';
+      '<p class="hint guard-note" hidden></p><p class="split-summary"></p><div class="split-table"></div></div>';
   }
 
   function wireSplit(el) {
@@ -836,6 +858,15 @@
       var ip = S.parseIp(ipIn.value), pp = +parent.value, cp = +child.value;
       err.hidden = ip !== null;
       if (ip === null) return;
+      /* guard rails: 192.168.x.x parents start at /16, 172.16-31.x.x at /12 */
+      var lo = prefixFloor(ip, 8), g = guardNote(ip, 8), guard = el.querySelector('.guard-note');
+      guard.innerHTML = g; guard.hidden = !g;
+      if (+parent.options[0].value !== lo) {
+        if (pp < lo) pp = lo;
+        var ph = [];
+        for (var q = lo; q <= 30; q++) ph.push('<option value="' + q + '"' + (q === pp ? ' selected' : '') + '>/' + q + '</option>');
+        parent.innerHTML = ph.join('');
+      }
       if (cp < pp) { cp = pp; child.value = cp; }
       /* keep the child list starting at the parent prefix */
       var keep = cp, h = [];
