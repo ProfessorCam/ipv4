@@ -846,3 +846,31 @@ button.bg-digits:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 .maskstack .res .bit.host { opacity: .35; }
 .maskstack .res .ms-lab, .maskstack .res .octet-val { color: var(--ink); font-weight: 700; }
 @media (max-width: 480px) { .maskstack .bit { width: 19px; height: 24px; font-size: 12px; } .ms-lab { width: 52px; } .maskstack { gap: 12px 14px; } }
+
+/* ---------- Mask and CIDR: address on one line, subnet mask on the next ---------- */
+.am-scroll { overflow-x: auto; margin: 10px 0 4px; }
+.addrmask { display: flex; flex-direction: column; gap: 10px; min-width: 640px; }
+.am-row { display: flex; align-items: flex-start; gap: 12px; }
+.am-lab { flex: 0 0 104px; padding-top: 5px; font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.am-oct { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
+.am-cells { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.am-cells .bit { height: 30px; font-size: 14px; border-radius: 5px; min-width: 0; }
+.am-val { text-align: center; font-family: var(--mono); font-size: 15px; color: var(--ink); }
+.am-row + .am-row { padding-top: 10px; border-top: 1px dashed var(--line); }
+.am-note { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.am-note b { color: var(--ink); margin-right: 4px; }
+.am-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 2px solid; vertical-align: -2px; margin: 0 6px 0 0; }
+.am-key.host { margin-left: 14px; }
+.am-key.net { background: #e7e6ff; border-color: #a29ce8; }
+.am-key.host { background: #fce0ff; border-color: #d98ee6; }
+[data-theme="dark"] .am-key.net { background: #232052; border-color: #6f66d6; }
+[data-theme="dark"] .am-key.host { background: #3d1b46; border-color: #b46bc6; }
+/* narrower columns: the label sits above its line so all 32 bits still fit on one line */
+@media (max-width: 1180px) {
+  .am-row { flex-wrap: wrap; gap: 4px 10px; }
+  .am-lab { flex-basis: 100%; padding-top: 0; font-size: 13.5px; }
+  .am-oct { gap: 2px; }
+  .am-cells .bit { height: 26px; font-size: 12px; border-width: 1.5px; border-radius: 4px; }
+  .am-val { font-size: 13.5px; }
+  .addrmask { min-width: 440px; }
+}

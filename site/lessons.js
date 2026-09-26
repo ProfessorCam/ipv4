@@ -165,25 +165,18 @@ var LESSONS = [
     sections: [
       { h: 'A line through the address', p: {
         s: [
-          'Look at <code>192.168.1.10</code> with the usual home mask, <code>/24</code>. The first three numbers, coloured blue, are the network: they are the same on every machine in your house. The last number, coloured pink, is the host: it is different on each machine. Drag the slider to move the line, or type a different address, and watch the colours follow it. Under the octets you can see the mask as switches: a 1 means "this switch counts for the network", a 0 means "ignore this one, it belongs to the host". The bottom row is what is left: the network address.'
+          'The address is on top, the subnet mask underneath. Where the mask has a 1, that part of the address is the <b>network</b> (blue). Where it has a 0, it is the <b>host</b> (pink). Drag the slider to move the line.'
         ],
         m: [
-          'Take <code>192.168.1.10</code> with a <code>/24</code> mask. The first 24 bits (three octets) are the <b>network portion</b>: identical on every host in the subnet. The last 8 bits are the <b>host portion</b>: unique to each machine. The mask does not travel in the packet; each host is configured with it and uses it locally. Move the slider to put the line anywhere from /8 to /32, and type any address you like: the octets, the mask and the bits all follow. The rows under the octets show the mask doing its job: every mask 1 keeps the address bit above it (used for the network), every mask 0 throws it away (not used: those bits identify the host), and the bottom row is the network address that results.'
-        ],
-        e: [
-          '<code>192.168.1.10/24</code>: bits 0 to 23 are the network prefix, bits 24 to 31 the host identifier. The prefix is not carried in the IPv4 header; it is per-interface configuration (static, DHCP option 1, or derived from routing) and is only ever applied locally. Move the line: whenever <i>p</i> is not a multiple of 8 an octet is split, which is the case worth practising. Below the octets the mask is laid under the address bit for bit: a 1 keeps that address bit (network), a 0 discards it (host), and address AND mask is the network address, the value a router actually compares.'
+          'The address is on the first line and the subnet mask on the second, bit for bit. Mask 1s mark the <b>network</b> bits (blue); mask 0s mark the <b>host</b> bits (pink). Drag the slider or type an address to see the line move.'
         ]
-      }, anatomy: { kind: 'ip4', value: '192.168.1.10', prefix: 24, left: 'the network part, the same on every machine in this subnet', right: 'the host part, different on every machine in this subnet' }, after: {
+      }, anatomy: { kind: 'ip4', value: '192.168.1.10', prefix: 24 }, after: {
         s: [
-          'Written as switches, the mask is a run of ones then a run of zeros: <code>11111111.11111111.11111111.00000000</code>. That is <code>255.255.255.0</code>, or "24 ones", which is why we can also just write <code>/24</code>.'
+          '24 ones then 8 zeros is <code>255.255.255.0</code>. Counting the ones gives the short name: <code>/24</code>.'
         ],
         m: [
-          'The mask is that same line written as bits: ones over the network part, zeros over the host part. <code>11111111.11111111.11111111.00000000</code> is <code>255.255.255.0</code>. Because a valid mask is always a solid run of ones followed by zeros, you can describe it with a single number, the count of ones: <code>/24</code>. That is <b>CIDR notation</b> (Classless Inter-Domain Routing).',
-          'When the line does not fall on a dot, one octet is split. <code>/20</code> is <code>11111111.11111111.11110000.00000000</code> = <code>255.255.240.0</code>: the third octet gives four bits to the network and four to the host. {{Row:slider}} shows that happening as you move the slider.'
-        ],
-        e: [
-          'A valid mask is contiguous: <i>p</i> ones followed by 32 − <i>p</i> zeros. Prefix length <i>p</i> therefore encodes it completely (CIDR, RFC 4632; non-contiguous masks were legal in classful days and are rejected by modern stacks). Mask = 0xFFFFFFFF << (32 − <i>p</i>); wildcard = ~mask.',
-          'When <i>p</i> is not a multiple of 8, one octet is split, and its mask value is one of 128, 192, 224, 240, 248, 252, 254. <code>/20</code> → <code>255.255.240.0</code>; <code>/27</code> → <code>255.255.255.224</code>. The old classful boundaries (/8, /16, /24 for A, B, C) are just the three cases where the split falls on a dot.'
+          'A mask is always a run of 1s then a run of 0s, so the number of 1s says it all: <code>255.255.255.0</code> is <code>/24</code>. That is <b>CIDR notation</b>.',
+          'If the line lands inside an octet, that octet is split: <code>/20</code> = <code>255.255.240.0</code>.'
         ]
       }},
       { h: 'The masks you will meet', p: {

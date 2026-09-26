@@ -37,14 +37,14 @@ Then open <http://127.0.0.1:8082>. Stop it with `docker compose down`. Or, from 
 docker run --rm -it --name ipv4 -p 8082:8082 professorcryan/ipv4
 ```
 
-## Reading level (Simple | Moderate | Engineer)
+## Reading level (ELI5 | Moderate)
 
-The buttons at the top right of the page switch every explanation between three depths: **Simple**
-(the big idea in plain words), **Moderate** (beginner CCNA student, the default) and **Engineer** (RFC
-numbers, wildcard masks, /31 and CGNAT, kept short). The choice is stored in the browser, and a link such as
-`index.html?level=simple` (or `moderate`, `engineer`) opens the site at that level.
+The buttons at the top right of the page switch every explanation between two depths: **ELI5**
+(explain it like I'm five: the big idea in plain words) and **Moderate** (beginner CCNA student, the
+default). The choice is stored in the browser, and a link such as `index.html?level=eli5` (or `moderate`)
+opens the site at that level. Old `?level=simple` links open ELI5; `?level=engineer` opens Moderate.
 
-The mechanism is `site/level.js`, identical on every Packet Lessons site. In `site/lessons.js` any piece of
+The mechanism is `site/level.js`. This site's copy has two levels; the other Packet Lessons sites keep three. In `site/lessons.js` any piece of
 prose can be a plain string (same at every level) or an object with `s`, `m` and `e` keys. A missing key
 falls back to Moderate; an empty string leaves that paragraph out at that level. Rows refer to each other
 with `{{row:id}}`. Widget captions use the same objects, with `{size}`, `{mask}`, `{net}` and similar
@@ -71,7 +71,7 @@ site/
   style.css          the shared Packet Lessons theme, plus the widget styles at the end
   app.js             builds the nav, renders a lesson, draws and wires the widgets
   lessons.js         ALL teaching content lives here, one object per row
-  level.js           the Simple | Moderate | Engineer toggle and the lv() text resolver
+  level.js           the ELI5 | Moderate toggle and the lv() text resolver
   subnet.js          the arithmetic: masks, networks, broadcasts, classification, question generator
   checks.js          the "Check your understanding" question generators, one per row, and their grader
   exam.js            the CCNA-style multiple-choice generators for the Exam practice row

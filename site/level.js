@@ -1,5 +1,6 @@
-/* level.js - the Simple | Moderate | Engineer reading level.
-   Shared by every Packet Lessons site; keep the copies identical.
+/* level.js - the ELI5 | Moderate reading level.
+   This IPv4 copy has two levels. Content may still carry an 'e' (Engineer) key from the shared
+   Packet Lessons format; it is never shown here, and ?level=engineer or a saved 'e' opens Moderate.
 
    Any piece of prose in lessons.js may be written three ways:
      'one string'                          -> the same at every level
@@ -10,19 +11,18 @@
    {{row:id}} / {{Row:id}} into 'the "Title" row' / 'The "Title" row' from the lesson's title. */
 
 var LEVELS = [
-  { id: 's', label: 'Simple',   hint: 'Plain words and the big idea' },
-  { id: 'm', label: 'Moderate', hint: 'CCNA-student depth' },
-  { id: 'e', label: 'Engineer', hint: 'Full technical detail, kept short' }
+  { id: 's', label: 'ELI5',     hint: 'Explain it like I am five: plain words and the big idea' },
+  { id: 'm', label: 'Moderate', hint: 'CCNA-student depth' }
 ];
 
 var LEVEL_KEY = 'packet-lessons-level';
-var LEVEL_NAMES = { simple: 's', moderate: 'm', engineer: 'e', s: 's', m: 'm', e: 'e' };
+var LEVEL_NAMES = { eli5: 's', simple: 's', moderate: 'm', engineer: 'm', s: 's', m: 'm', e: 'm' };
 
 function getLevel() {
   var v = null;
   try { v = localStorage.getItem(LEVEL_KEY); } catch (e) { v = null; }
   if (!v) {
-    var q = /[?&]level=([a-z]+)/i.exec(location.search);
+    var q = /[?&]level=([a-z0-9]+)/i.exec(location.search);
     if (q) v = LEVEL_NAMES[q[1].toLowerCase()] || null;
   }
   return LEVEL_NAMES[v] || 'm';

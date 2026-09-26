@@ -109,7 +109,7 @@
       b.type = 'button';
       b.dataset.id = l.id;
       b.title = l.subtitle;
-      b.innerHTML = '<span class="text"><span class="title">' + esc(l.title) + '</span></span>' + (l.chip ? '<span class="lay">' + esc(l.chip) + '</span>' : '') + '<span class="tick" hidden>✓</span>';
+      b.innerHTML = '<span class="text"><span class="title">' + esc(l.title) + '</span></span>' + '<span class="tick" hidden>✓</span>';
       b.addEventListener('click', function () { location.hash = l.id; });
       section.appendChild(b);
     });
@@ -235,40 +235,39 @@
       '<span class="widget-err" hidden>That is not a valid IPv4 address: four numbers from 0 to 255.</span></div>' +
       '<input class="cidr-range anat-range" type="range" min="' + min + '" max="' + max + '" value="' + prefix + '" step="1" aria-label="Prefix length: where the line falls">' +
       '<div class="cidr-ticks">' + tickHtml(min, max) + '</div>' +
-      '<div class="anat-body">' + anatomyBody(S.parseIp(a.value), prefix, a.left, a.right) + '</div></div>';
+      '<div class="anat-body">' + anatomyBody(S.parseIp(a.value), prefix) + '</div></div>';
   }
 
-  function anatomyBody(ip, prefix, left, right) {
-    var roles = S.octetRoles(prefix), h = [], parts = S.fmtIp(ip).split('.');
-    h.push('<div class="anatomy" aria-label="IPv4 address ' + esc(S.fmtIp(ip)) + ' with a /' + prefix + ' mask">');
-    parts.forEach(function (x, i) {
-      /* a split octet is shaded in proportion: its network bits from the left, host bits from the right */
-      var netBits = Math.max(0, Math.min(8, prefix - i * 8)), style = roles[i] === 'mixed' ? ' style="--split:' + (netBits / 8 * 100) + '%"' : '';
-      h.push('<span class="byte wide ' + roles[i] + '"' + style + ' title="' + netBits + ' network bit' + (netBits === 1 ? '' : 's') + ', ' + (8 - netBits) + ' host bit' + (8 - netBits === 1 ? '' : 's') + '">' + esc(x) + '</span>');
-    });
-    h.push('<span class="byte slash">/' + prefix + '</span></div>');
-    var legend = [['net', 'Network', left || 'the network part, the same on every machine in this subnet'], ['host', 'Host', right || 'the host part, different on every machine in this subnet']];
-    if (roles.indexOf('mixed') >= 0) legend.splice(1, 0, ['mixed', 'Split octet', 'the /' + prefix + ' line falls inside this octet: ' + (prefix % 8) + ' bits network, ' + (8 - prefix % 8) + ' host, shaded in that proportion']);
-    h.push('<div class="anatomy-legend">' + legend.map(function (l) { return '<span><i class="sw ' + l[0] + '"></i><b>' + esc(l[1]) + ':</b> ' + esc(l[2]) + '</span>'; }).join('') + '</div>');
-    var whole = prefix % 8 === 0;
-    h.push('<p class="hint">Mask <code>' + S.fmtIp(S.maskOf(prefix)) + '</code>. ' +
-      (whole ? 'The line falls on a dot: ' + (prefix / 8) + ' whole octet' + (prefix === 8 ? '' : 's') + ' to the network, ' + (4 - prefix / 8) + ' to the host.'
-             : 'The line falls inside octet ' + (Math.floor(prefix / 8) + 1) + ', so that octet is split: ' + (prefix % 8) + ' network bits and ' + (8 - prefix % 8) + ' host bits.') +
-      ' Below, octet by octet: the address as bits, the mask as bits beneath it (a 1 means that address bit is used to name the network, a 0 means it is ignored), and what is left after the AND, the network address.</p>');
-    h.push(maskStackHtml(ip, prefix));
-    return h.join('');
+  function anatomyBody(ip, prefix) {
+    var mask = S.maskOf(prefix), host = 32 - prefix;
+    function row(cls, label, n) {
+      var bits = S.octetBits(n), h = '<div class="am-row ' + cls + '"><span class="am-lab">' + label + '</span>';
+      for (var o = 0; o < 4; o++) {
+        h += '<span class="am-oct"><span class="am-cells">';
+        for (var i = 0; i < 8; i++) {
+          var idx = o * 8 + i;
+          h += '<i class="bit ' + (idx < prefix ? 'net' : 'host') + (bits[o][i] === '1' ? ' on' : '') + '">' + bits[o][i] + '</i>';
+        }
+        h += '</span><b class="am-val">' + ((n >>> (24 - o * 8)) & 255) + '</b></span>';
+      }
+      return h + '</div>';
+    }
+    return '<div class="am-scroll"><div class="addrmask" role="img" aria-label="Address ' + esc(S.fmtIp(ip)) + ' over subnet mask ' + esc(S.fmtIp(mask)) + ': ' + prefix + ' network bits, ' + host + ' host bits">' +
+      row('addr', 'Address', ip) + row('mask', 'Subnet Mask', mask) + '</div></div>' +
+      '<p class="am-note"><span class="am-key net"></span><b>Network</b> ' + prefix + ' bit' + (prefix === 1 ? '' : 's') + ' (mask 1s) ' +
+      '<span class="am-key host"></span><b>Host</b> ' + host + ' bit' + (host === 1 ? '' : 's') + ' (mask 0s)</p>';
   }
 
   function wireAnatomy(el) {
     var input = el.querySelector('.ip-input'), err = el.querySelector('.widget-err');
     var range = el.querySelector('.anat-range'), readout = el.querySelector('.anat-readout'), body = el.querySelector('.anat-body');
-    var left = el.dataset.left, right = el.dataset.right, key = el.dataset.start;
+    var key = el.dataset.start;
     function apply() {
       var ip = S.parseIp(el.dataset.ip), prefix = +range.value;
       anatMemory[key] = prefix;
       readout.textContent = '/' + prefix;
       range.setAttribute('aria-valuetext', '/' + prefix + ', mask ' + S.fmtIp(S.maskOf(prefix)) + ', ' + (32 - prefix) + ' host bits');
-      body.innerHTML = anatomyBody(ip, prefix, left, right);
+      body.innerHTML = anatomyBody(ip, prefix);
     }
     input.addEventListener('input', function () {
       var ip = S.parseIp(input.value);
@@ -1100,7 +1099,7 @@
       '<li><b>Special addresses.</b> Loopback, APIPA, multicast, SSDP, Miracast, broadcast, 0.0.0.0 and the documentation ranges: what each means when you see it.</li>' +
       '<li><b>Try it yourself.</b> Random questions like "how many addresses are in 192.168.1.0/28?", checked as you go, with the working shown.</li>' +
       '</ol>' +
-      '<p class="hint"><b>Reading level.</b> The <b>Simple</b>, <b>Moderate</b> and <b>Engineer</b> buttons at the top right change how deep every explanation goes. Simple is the big idea in plain words, Moderate is CCNA-student depth, Engineer is the full technical detail kept short. Your choice is remembered on this browser, and a link with <code>?level=simple</code> (or moderate, engineer) opens the site at that level.</p>' +
+      '<p class="hint"><b>Reading level.</b> The <b>ELI5</b> and <b>Moderate</b> buttons at the top right change how deep every explanation goes. ELI5 is the big idea in plain words; Moderate is CCNA-student depth. Your choice is remembered on this browser, and a link with <code>?level=eli5</code> or <code>?level=moderate</code> opens the site at that level.</p>' +
       '<p>Every widget on this site is live: type a different address into any of them and every number is recomputed on the spot. Nothing is looked up in a table.</p>' +
       '<h2>Quick reference</h2>' +
       '<div class="table-wrap"><table class="lab hosts"><tr><th>Prefix</th><th>Mask</th><th>Host bits</th><th>Addresses</th><th>Usable hosts</th></tr>' + ref + '</table></div>' +
